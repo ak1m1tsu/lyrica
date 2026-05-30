@@ -1,0 +1,85 @@
+package template
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/ak1m1tsu/lrclib/internal/lrclib"
+)
+
+// LyricsContent renders the lyrics display as an HTMX-swappable partial.
+templ LyricsContent(track lrclib.Track, plain bool) {
+	<div class="flex flex-col gap-6">
+		<a href="/" class="text-blue-400 hover:underline text-sm">← Back to search</a>
+		<div>
+			<h1 class="text-3xl font-bold">{ track.TrackName }</h1>
+			<p class="text-gray-400 mt-1">
+				{ track.ArtistName }
+				if track.AlbumName != "" {
+					<span class="mx-2">·</span>
+					{ track.AlbumName }
+				}
+				if track.Duration > 0 {
+					<span class="mx-2">·</span>
+					{ formatDuration(track.Duration) }
+				}
+			</p>
+		</div>
+		if track.Instrumental {
+			@EmptyState("This track is instrumental — no lyrics available.")
+		} else {
+			<div class="flex gap-2">
+				if !plain && track.SyncedLyrics != "" {
+					<button class="px-4 py-1.5 rounded-full bg-blue-600 text-sm font-medium">Synced</button>
+					if track.PlainLyrics != "" {
+						<button
+							class="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-sm"
+							hx-get={ fmt.Sprintf("/lyrics/%d?plain=true", track.ID) }
+							hx-target="#content"
+							hx-push-url="true"
+						>Plain</button>
+					}
+				} else {
+					if track.SyncedLyrics != "" {
+						<button
+							class="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-sm"
+							hx-get={ fmt.Sprintf("/lyrics/%d?plain=false", track.ID) }
+							hx-target="#content"
+							hx-push-url="true"
+						>Synced</button>
+					}
+					<button class="px-4 py-1.5 rounded-full bg-blue-600 text-sm font-medium">Plain</button>
+				}
+			</div>
+			<div id="lyrics-body">
+				@lyricsBody(track, plain)
+			</div>
+		}
+	</div>
+}
+
+templ lyricsBody(track lrclib.Track, plain bool) {
+	<div class="bg-white/5 rounded-xl p-6 font-mono text-sm leading-relaxed max-h-[60vh] overflow-y-auto">
+		if !plain && track.SyncedLyrics != "" {
+			for _, line := range strings.Split(track.SyncedLyrics, "\n") {
+				if len(line) > 0 {
+					<div class="flex gap-3">
+						<span class="text-blue-400/60 shrink-0">{ extractTimestamp(line) }</span>
+						<span>{ extractLyricText(line) }</span>
+					</div>
+				}
+			}
+		} else if track.PlainLyrics != "" {
+			for _, line := range strings.Split(track.PlainLyrics, "\n") {
+				<div>{ line }</div>
+			}
+		} else {
+			@EmptyState("No lyrics available for this track.")
+		}
+	</div>
+}
+
+// LyricsPage renders the full lyrics page wrapped in the site layout.
+templ LyricsPage(track lrclib.Track, plain bool) {
+	@Layout(track.TrackName, LyricsContent(track, plain))
+}

@@ -1,0 +1,81 @@
+package template
+
+import (
+	"fmt"
+
+	"github.com/ak1m1tsu/lrclib/internal/lrclib"
+)
+
+templ trackCard(track lrclib.Track) {
+	<div
+		class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-colors"
+		hx-get={ fmt.Sprintf("/lyrics/%d", track.ID) }
+		hx-target="#content"
+		hx-push-url="true"
+	>
+		<div class="flex items-start justify-between gap-2">
+			<div class="flex-1 min-w-0">
+				<p class="font-semibold truncate">{ track.TrackName }</p>
+				<p class="text-sm text-gray-400 truncate">
+					{ track.ArtistName }
+					if track.AlbumName != "" {
+						<span class="mx-1">·</span>
+						{ track.AlbumName }
+					}
+				</p>
+			</div>
+			<div class="flex gap-1 shrink-0">
+				if track.Instrumental {
+					<span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Instrumental</span>
+				} else if track.SyncedLyrics != "" {
+					<span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">Synced</span>
+				} else if track.PlainLyrics != "" {
+					<span class="text-xs bg-gray-500/20 text-gray-400 px-2 py-0.5 rounded-full">Plain</span>
+				}
+			</div>
+		</div>
+		if track.Duration > 0 {
+			<p class="text-xs text-gray-500 mt-1">{ formatDuration(track.Duration) }</p>
+		}
+	</div>
+}
+
+// SearchResults renders a list of track cards as an HTMX-swappable partial.
+templ SearchResults(tracks []lrclib.Track) {
+	if len(tracks) == 0 {
+		@EmptyState("No results found. Try a different search.")
+	} else {
+		<div class="flex flex-col gap-3 w-full">
+			for _, t := range tracks {
+				@trackCard(t)
+			}
+		</div>
+	}
+}
+
+// SearchPage renders the full search results page wrapped in the site layout.
+templ SearchPage(query string, tracks []lrclib.Track) {
+	@Layout("Search: "+query, searchPageBody(query, tracks))
+}
+
+templ searchPageBody(query string, tracks []lrclib.Track) {
+	<div class="flex flex-col gap-6">
+		<div class="relative max-w-xl">
+			<input
+				type="search"
+				name="q"
+				value={ query }
+				placeholder="Search..."
+				class="w-full bg-white/10 border border-white/20 rounded-xl px-5 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				hx-get="/search"
+				hx-target="#results"
+				hx-trigger="input delay:300ms, search"
+				hx-indicator="#spinner"
+			/>
+			<span id="spinner" data-htmx-indicator class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">⟳</span>
+		</div>
+		<div id="results">
+			@SearchResults(tracks)
+		</div>
+	</div>
+}

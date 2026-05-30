@@ -1,0 +1,27 @@
+package template
+
+// Layout renders the full HTML document shell with nav and main content slot.
+templ Layout(title string, body templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } — lrclib</title>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="/static/htmx.min.js"></script>
+			<style>
+				[data-htmx-indicator] { display: none; }
+				.htmx-request [data-htmx-indicator] { display: inline; }
+			</style>
+		</head>
+		<body class="bg-[#0f1117] text-white min-h-screen">
+			<nav class="border-b border-white/10 px-6 py-4">
+				<a href="/" class="text-blue-400 font-bold text-xl tracking-tight">lrclib</a>
+			</nav>
+			<main id="content" class="px-4 py-8 max-w-4xl mx-auto">
+				@body
+			</main>
+		</body>
+	</html>
+}
