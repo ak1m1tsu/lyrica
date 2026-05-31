@@ -9,5 +9,12 @@
   "author": {
     "name": "ak1m1tsu",
     "email": "kravchuk.roman02@gmail.com"
+  },
+  "info": {
+    "companyName": "ak1m1tsu",
+    "productName": "lrclib",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2025 ak1m1tsu",
+    "comments": "Lyrics browser powered by LRCLib.net"
   }
 }
