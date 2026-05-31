@@ -1,2 +1,24 @@
+# Claude Code local state
 .claude/**
+
+# Compiled binaries
 bin/**
+build/bin/
+
+# Frontend build output and dependencies
+**/node_modules/**
+**/dist/**
+frontend/package.json.md5
+
+# Test coverage
+coverage/**
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Secrets
+*.env
+
+# macOS
+.DS_Store

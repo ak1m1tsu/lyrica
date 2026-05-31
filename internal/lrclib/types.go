@@ -7,12 +7,12 @@ var ErrNotFound = errors.New("track not found")
 
 // Track holds metadata and lyrics for a music track.
 type Track struct {
-	ID           int
-	TrackName    string
-	ArtistName   string
-	AlbumName    string
-	Duration     float64
-	Instrumental bool
-	PlainLyrics  string
-	SyncedLyrics string
+	ID           int     `json:"id"`
+	TrackName    string  `json:"trackName"`
+	ArtistName   string  `json:"artistName"`
+	AlbumName    string  `json:"albumName"`
+	Duration     float64 `json:"duration"`
+	Instrumental bool    `json:"instrumental"`
+	PlainLyrics  string  `json:"plainLyrics"`
+	SyncedLyrics string  `json:"syncedLyrics"`
 }
