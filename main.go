@@ -4,6 +4,9 @@ import (
 	"embed"
 	"log/slog"
 
+	infralrclib "github.com/ak1m1tsu/lrclib/internal/infrastructure/lrclib"
+	"github.com/ak1m1tsu/lrclib/internal/infrastructure/storage"
+	"github.com/ak1m1tsu/lrclib/internal/service"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -20,7 +23,15 @@ const (
 )
 
 func main() {
-	app := NewApp()
+	store := storage.NewFileStore("")
+	defer func() {
+		if err := store.Close(); err != nil {
+			slog.Error("favorites store close failed", "error", err)
+		}
+	}()
+	lyrics := service.NewLyrics(infralrclib.New())
+	favorites := service.NewFavorites(store)
+	app := NewApp(lyrics, favorites)
 	err := wails.Run(&options.App{
 		Title:            "lrclib",
 		Width:            windowWidth,

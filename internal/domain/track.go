@@ -1,4 +1,6 @@
-package lrclib
+// Package domain holds the core types and port interfaces of lrclib.
+// It has no dependencies on infrastructure, services, or the Wails runtime.
+package domain
 
 import "errors"
 

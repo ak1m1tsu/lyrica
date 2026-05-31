@@ -6,73 +6,74 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ak1m1tsu/lrclib/internal/lrclib"
+	"github.com/ak1m1tsu/lrclib/internal/domain"
+	"github.com/ak1m1tsu/lrclib/internal/service"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+// App is the Wails-bound adapter. It owns the Wails runtime context and
+// delegates all business logic to the injected services.
 type App struct {
-	ctx    context.Context
-	client *lrclib.Client
-	fav    *favoritesManager
+	ctx       context.Context
+	lyrics    *service.Lyrics
+	favorites *service.Favorites
 }
 
-func NewApp() *App {
-	return &App{client: lrclib.New(), fav: newFavoritesManager()}
+// NewApp wires the infrastructure into the services and returns the adapter.
+func NewApp(lyrics *service.Lyrics, favorites *service.Favorites) *App {
+	return &App{lyrics: lyrics, favorites: favorites}
 }
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func (a *App) Search(query string) ([]lrclib.Track, error) {
-	query = strings.TrimSpace(query)
-	if query == "" {
-		return []lrclib.Track{}, nil
-	}
-	if len(query) > 500 {
-		query = query[:500]
-	}
-	tracks, err := a.client.Search(a.ctx, query)
-	if errors.Is(err, lrclib.ErrNotFound) {
-		return []lrclib.Track{}, nil
-	}
-	return tracks, err
+// Search returns tracks matching the query, or an empty slice when none match.
+func (a *App) Search(query string) ([]domain.Track, error) {
+	return a.lyrics.Search(a.ctx, query)
 }
 
-func (a *App) GetByID(id int) (*lrclib.Track, error) {
-	if id <= 0 {
-		return nil, errors.New("invalid track ID")
-	}
-	track, err := a.client.GetByID(a.ctx, id)
-	if errors.Is(err, lrclib.ErrNotFound) {
+// GetByID returns a single track, translating service errors into
+// user-friendly messages for the frontend.
+func (a *App) GetByID(id int) (*domain.Track, error) {
+	track, err := a.lyrics.GetByID(a.ctx, id)
+	switch {
+	case errors.Is(err, service.ErrInvalidID):
+		return nil, errors.New("Invalid track ID.")
+	case errors.Is(err, domain.ErrNotFound):
 		return nil, errors.New("Track not found.")
-	}
-	if err != nil {
+	case err != nil:
 		return nil, errors.New("Failed to load lyrics. Please try again.")
 	}
 	return track, nil
 }
 
-func (a *App) GetFavorites() []lrclib.Track {
-	return a.fav.getAll()
+// GetFavorites returns a copy of all saved favorites.
+func (a *App) GetFavorites() []domain.Track {
+	return a.favorites.GetAll()
 }
 
-func (a *App) AddFavorite(track lrclib.Track) error {
-	return a.fav.add(track)
+// AddFavorite stores a track, deduplicating by ID.
+func (a *App) AddFavorite(track domain.Track) error {
+	return a.favorites.Add(a.ctx, track)
 }
 
+// RemoveFavorite removes a favorite by ID.
 func (a *App) RemoveFavorite(id int) error {
-	return a.fav.remove(id)
+	return a.favorites.Remove(a.ctx, id)
 }
 
+// IsFavorite reports whether a track is a favorite.
 func (a *App) IsFavorite(id int) bool {
-	return a.fav.has(id)
+	return a.favorites.IsFavorite(id)
 }
 
+// GetFavoritesDir returns the current favorites storage path.
 func (a *App) GetFavoritesDir() string {
-	return a.fav.getDir()
+	return a.favorites.Dir()
 }
 
+// PickFavoritesDir opens a native directory picker and persists the choice.
 func (a *App) PickFavoritesDir() (string, error) {
 	dir, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Choose favorites folder",
@@ -80,12 +81,13 @@ func (a *App) PickFavoritesDir() (string, error) {
 	if err != nil || dir == "" {
 		return "", err
 	}
-	if err := a.fav.setDir(dir); err != nil {
+	if err := a.favorites.SetDir(a.ctx, dir); err != nil {
 		return "", err
 	}
 	return dir, nil
 }
 
+// ExportLyrics opens a native save dialog and writes lyrics to a .lrc or .txt file.
 func (a *App) ExportLyrics(trackName, text, ext string) error {
 	filters := []runtime.FileFilter{{DisplayName: "LRC files (*.lrc)", Pattern: "*.lrc"}}
 	if ext == ".txt" {
@@ -103,4 +105,18 @@ func (a *App) ExportLyrics(trackName, text, ext string) error {
 		path += ext
 	}
 	return os.WriteFile(path, []byte(text), 0644)
+}
+
+// sanitizeFilename replaces filesystem-reserved characters with underscores
+// and truncates the result to 100 characters.
+func sanitizeFilename(name string) string {
+	r := strings.NewReplacer(
+		"/", "_", "\\", "_", ":", "_", "*", "_",
+		"?", "_", `"`, "_", "<", "_", ">", "_", "|", "_",
+	)
+	result := r.Replace(name)
+	if len(result) > 100 {
+		result = result[:100]
+	}
+	return result
 }
