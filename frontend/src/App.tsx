@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, GetByID } from '../wailsjs/go/main/App'
+import { GetByID } from '../wailsjs/go/main/App'
 import { SearchBar } from './components/SearchBar'
 import { ResultsList } from './components/ResultsList'
 import { LyricsView } from './components/LyricsView'
@@ -8,6 +8,7 @@ import { TitleBar } from './components/TitleBar'
 import { Track } from './components/TrackCard'
 import { useTheme } from './hooks/useTheme'
 import { useFavorites } from './hooks/useFavorites'
+import { useSearch } from './hooks/useSearch'
 import { FavoritesPanel } from './components/FavoritesPanel'
 
 type View = 'home' | 'lyrics'
@@ -15,32 +16,12 @@ type View = 'home' | 'lyrics'
 export default function App() {
   const { theme, toggle } = useTheme()
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir } = useFavorites()
+  const { results, loading: searchLoading, error: searchError, search: handleSearch } = useSearch()
   const [favPanelOpen, setFavPanelOpen] = useState(false)
   const [view, setView] = useState<View>('home')
-  const [results, setResults] = useState<Track[]>([])
-  const [searchLoading, setSearchLoading] = useState(false)
-  const [searchError, setSearchError] = useState<string | null>(null)
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
   const [lyricsLoading, setLyricsLoading] = useState(false)
   const [lyricsError, setLyricsError] = useState<string | null>(null)
-
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) {
-      setResults([])
-      setSearchError(null)
-      return
-    }
-    setSearchLoading(true)
-    setSearchError(null)
-    try {
-      const tracks = await Search(query)
-      setResults(tracks ?? [])
-    } catch (e: unknown) {
-      setSearchError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setSearchLoading(false)
-    }
-  }
 
   const handleSelect = async (track: Track) => {
     setLyricsLoading(true)
