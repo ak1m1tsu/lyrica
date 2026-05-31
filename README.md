@@ -1,42 +1,62 @@
 # lrclib
 
-A web app that searches and displays synchronized and plain-text lyrics sourced from [lrclib.net](https://lrclib.net).
+A desktop application that searches and displays synchronized and plain-text lyrics sourced from [lrclib.net](https://lrclib.net). Runs on Windows and macOS.
+
+## Features
+
+- Search tracks by name or artist
+- Synced (LRC timestamped) and plain-text lyrics views
+- Favorites — persist and manage saved tracks
+- Export lyrics as `.lrc` or `.txt` via native save dialog
+- Dark / light theme toggle
+
+## Download
+
+Pre-built binaries are published on [GitHub Releases](../../releases):
+
+| Platform | File |
+|---|---|
+| Windows | `lrclib-amd64-installer.exe` (NSIS installer) |
+| macOS | `lrclib-macos.zip` (universal `.app`) |
 
 ## Stack
 
-- Go 1.26+
-- [gorilla/mux](https://github.com/gorilla/mux) — HTTP router
-- [a-h/templ](https://github.com/a-h/templ) — type-safe HTML templates compiled to Go
-- [HTMX](https://htmx.org) — partial page updates without writing JavaScript
-- TailwindCSS (CDN)
+- Go 1.26 + [Wails v2](https://wails.io) — desktop runtime
+- React 18 + TypeScript + Vite — frontend
+- Tailwind CSS — styling with dark-mode support
 
 ## Prerequisites
 
-- Go 1.26 or later
-- templ CLI: `go install github.com/a-h/templ/cmd/templ@latest`
+- Go 1.26+
+- Node 20+
+- Wails CLI: `go install github.com/wailsapp/wails/v2/cmd/wails@latest`
 
 ## Build and run
 
 ```sh
-go generate ./internal/template/...   # compile .templ files to _templ.go
-go build -o bin/web ./cmd/web
-./bin/web              # listens on :8080
-./bin/web -addr :3000  # custom port
+wails dev      # dev mode with hot reload
+wails build    # production binary (embeds frontend/dist)
 ```
 
-## Usage
+Frontend only:
 
-Open `http://localhost:8080` in a browser. Type a track name or artist into the search box — results appear as you type (300 ms debounce). Click a result to view its lyrics. Use the **Synced** / **Plain** toggle on the lyrics page to switch between the LRC timestamped view and plain text.
+```sh
+cd frontend && npm run dev
+cd frontend && npm run build
+```
+
+After `wails generate module`, Wails regenerates the TypeScript bindings in `frontend/wailsjs/` from the exported `App` methods.
 
 ## Project layout
 
 | Path | Purpose |
 |---|---|
-| `cmd/web/` | Binary entry point — flag parsing, routing, server lifecycle |
-| `internal/lrclib/` | HTTP client for the lrclib.net API |
-| `internal/handler/` | HTTP handlers and middleware (SecureHeaders, Logger, Recover) |
-| `internal/template/` | Templ component definitions and generated Go code |
-| `cmd/web/static/` | Embedded static assets (htmx.min.js) |
+| `main.go` | Wails entry point — frameless window config (1024×768), binds `App` |
+| `app.go` | `App` struct — all RPC methods exposed to the frontend |
+| `favorites.go` | `favoritesManager` — thread-safe favorites persistence |
+| `internal/lrclib/` | HTTP client for the LRCLib.net API |
+| `frontend/src/` | React + TypeScript UI components and hooks |
+| `frontend/wailsjs/` | Auto-generated TypeScript bindings (do not edit manually) |
 
 ## API source
 
