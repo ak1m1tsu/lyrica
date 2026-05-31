@@ -5,123 +5,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```sh
-go build ./...          # build all packages
-go build ./cmd/lrclib   # build the binary
-go test ./...           # run all tests
-go fmt ./...            # format code
-go vet ./...            # static analysis
+wails build               # build the desktop binary (embeds frontend/dist)
+wails dev                 # run in dev mode with hot reload
+go test ./...             # run all tests
+go fmt ./...              # format code
+go vet ./...              # static analysis
+```
+
+Frontend only:
+```sh
+cd frontend && npm run build   # compile React app to frontend/dist
+cd frontend && npm run dev     # Vite dev server (used by wails dev)
 ```
 
 No Makefile, CI config, or external lint config exists yet.
 
 ## Architecture
 
-`lrclib` is a Go CLI tool that retrieves synchronized and plain-text lyrics from the [LRCLib.net](https://lrclib.net) API. Module: `github.com/ak1m1tsu/lrclib`, Go 1.26.3, stdlib only.
+`lrclib` is a Wails v2 desktop application that retrieves synchronized and plain-text lyrics from the [LRCLib.net](https://lrclib.net) API. Module: `github.com/ak1m1tsu/lrclib`, Go 1.26.3.
 
 ### Package map
 
-| Package | Path | Role |
-|---|---|---|
-| `main` | `cmd/lrclib/main.go` | Binary entry point — flag parsing, signal handling, composition root |
-| `lrclib` (app) | `internal/app/lrclib/app.go` | `App` struct with `New()` / `Run()` lifecycle |
-| `lrclib` (client) | `internal/pkg/lrclib/` | HTTP client for the LRCLib API |
+| Package / Path | Role |
+|---|---|
+| `main.go` | Wails entry point — embeds `frontend/dist`, configures window, binds `App` |
+| `app.go` | `App` struct — `Search` and `GetByID` RPC methods exposed to the frontend |
+| `internal/lrclib/` | HTTP client for the LRCLib.net API |
+| `frontend/src/` | React + TypeScript UI |
 
-### HTTP client (`internal/pkg/lrclib`)
+### HTTP client (`internal/lrclib`)
 
 - `New()` returns a `*Client` with base URL `https://lrclib.net` and 10 s timeout.
-- `Client.Get(ctx, *GetRequest) (*GetResponse, error)` — validates the request (track name required), calls `GET /api/get`, decodes JSON.
-- Sentinel errors: `ErrTrackNameRequired`, `ErrNotFound`. Unexpected status codes return a formatted error with the status text.
-- `GetRequest` fields: `TrackName` (required), `ArtistName`, `AlbumName`, `Duration` (all optional).
-- `GetResponse` fields: `ID`, `TrackName`, `ArtistName`, `AlbumName`, `Duration`, `Instrumental`, `PlainLyrics`, `SyncedLyrics`.
+- `Client.Search(ctx, query) ([]Track, error)` — calls `GET /api/search?q=`, decodes JSON array.
+- `Client.GetByID(ctx, id) (*Track, error)` — calls `GET /api/get/{id}`, decodes JSON. Returns `ErrNotFound` on 404.
+- `Track` fields: `ID`, `TrackName`, `ArtistName`, `AlbumName`, `Duration`, `Instrumental`, `PlainLyrics`, `SyncedLyrics`.
 
-### App (`internal/app/lrclib`)
+### Desktop backend (`app.go`)
 
-- `Fetcher` interface — defined here (consumer-owned), not in the client package.
-- `New(fetcher Fetcher, out io.Writer, opts Options) *App` — wires dependencies; no I/O.
-- `App.Run(ctx context.Context) error` — fetches lyrics, selects the appropriate format, writes to `out`. No `os.Exit` inside.
-- `selectLyrics(resp, plainOnly) (string, error)` — unexported; prefers synced lyrics, falls back to plain. Returns `ErrTrackIsInstrumental`, `ErrNoPlainLyrics`, or `ErrNoLyrics` on failure.
-- `Options` fields: `TrackName`, `ArtistName`, `AlbumName`, `Duration` (int), `PlainOnly` (bool).
+- `NewApp()` creates the `App` and initialises the lrclib HTTP client.
+- `startup(ctx)` — Wails lifecycle hook; stores context.
+- `App.Search(query string) ([]lrclib.Track, error)` — caps query at 500 chars, delegates to client.
+- `App.GetByID(id int) (*lrclib.Track, error)` — delegates to client.
+- Both methods are exported and bound to the Wails JS bridge automatically.
 
-### CLI (`cmd/lrclib`)
+### Frontend (`frontend/`)
 
-Track name is a positional argument (first non-flag arg). Flags must come before the positional argument — flags after the track name are silently ignored by `flag.FlagSet`.
+React 18 + TypeScript + Vite + Tailwind CSS. Wails auto-generates TypeScript bindings in `frontend/wailsjs/` from the `App` struct methods.
 
-```
-lrclib [flags] <track name>
-```
-
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-artist` | string | `""` | Artist name for search |
-| `-album` | string | `""` | Album name for search |
-| `-duration` | int | `0` | Track duration in seconds |
-| `-plain` | bool | `false` | Output plain lyrics instead of synced LRC |
-| `-o` | string | `""` | Write lyrics to file (default: stdout) |
-
-**Exit codes:**
-
-| Code | Meaning |
+| Component | Responsibility |
 |---|---|
-| 0 | Success |
-| 1 | Runtime or API error |
-| 2 | Usage error (missing track name, bad flags) |
+| `App.tsx` | Top-level state: current view, results, selected track, loading/error flags |
+| `SearchBar.tsx` | Debounced search input (300 ms) |
+| `ResultsList.tsx` + `TrackCard.tsx` | Track grid with synced/plain/instrumental badges |
+| `LyricsView.tsx` | Full lyrics display with synced ↔ plain toggle |
+| `EmptyState.tsx` / `ErrorBlock.tsx` | Empty and error states |
 
-**Example:**
+### Wails bindings
 
-```sh
-lrclib -artist "Rick Astley" "Never Gonna Give You Up"
-lrclib -artist "Rick Astley" -plain "Never Gonna Give You Up"
-lrclib -artist "Rick Astley" -o lyrics.lrc "Never Gonna Give You Up"
+`frontend/wailsjs/go/main/App.d.ts` (auto-generated):
+```ts
+export function Search(arg1: string): Promise<Array<lrclib.Track>>;
+export function GetByID(arg1: number): Promise<lrclib.Track>;
 ```
+
+Run `wails generate module` to regenerate bindings after changing exported `App` methods.
 
 ### Conventions
 
-- All API methods accept a `context.Context` as the first argument.
+- All Go API methods accept `context.Context` as the first argument.
 - Errors are returned as the last return value; `nil` on success.
-- `cmd/lrclib` is the only composition root — dependency wiring happens there, not inside `internal/`.
-
-## Web Application
-
-`cmd/web` is a second binary in the same module. It serves a browser UI backed by the same lrclib.net API. Module: `github.com/ak1m1tsu/lrclib`, Go 1.26.3.
-
-### Routes
-
-| Method | Pattern | Handler | Description |
-|---|---|---|---|
-| GET | `/` | `HomeHandler` | Landing page with search form |
-| GET | `/search?q=` | `SearchHandler` | Search results; returns partial for HTMX, full page otherwise |
-| GET | `/lyrics/{id}?plain=` | `LyricsHandler` | Lyrics view; returns partial for HTMX, full page otherwise |
-| GET | `/static/` | `http.FileServer` | Embedded static assets (htmx.min.js) |
-
-### Middleware chain
-
-Requests pass through `SecureHeaders → Logger → Recover → router` (outermost first).
-
-- `SecureHeaders` — sets `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
-- `Logger` — logs method, path, status code, and duration to stderr.
-- `Recover` — converts any handler panic into a 500 response.
-
-### Template system
-
-Templates live in `internal/template/` as `.templ` files (a-h/templ DSL). Run `go generate ./internal/template/...` to compile them into `_templ.go` files. Handlers consume templates through narrow renderer interfaces defined in each handler file; `handler.Templates` adapts the generated components to those interfaces.
-
-### HTMX patterns
-
-- **Search-as-you-type** — the search input fires `GET /search?q=` with a 300 ms debounce (`hx-trigger="input delay:300ms, search"`). The response is swapped into `#results`.
-- **Lyrics navigation** — track cards send `GET /lyrics/{id}` into `#content` with `hx-push-url="true"`, updating the browser URL without a full page load.
-- **Synced/Plain toggle** — the toggle buttons on the lyrics page send `GET /lyrics/{id}?plain=true|false` into `#content` with `hx-push-url="true"`.
-- **Partial vs full page** — handlers detect `HX-Request: true` to decide whether to render a component partial or the full layout shell. This makes every route directly bookmarkable.
-
-### Security controls
-
-- Query length is capped at 500 characters in `SearchHandler` before the string reaches the API client.
-- Server timeouts: `ReadHeaderTimeout: 5s`, `ReadTimeout: 10s`, `WriteTimeout: 30s`, `IdleTimeout: 60s`.
-- `SecureHeaders` middleware applied to all responses.
-
-### Commands (web)
-
-```sh
-go generate ./internal/template/...   # recompile Templ files after editing .templ sources
-go build -o bin/web ./cmd/web         # build the web binary
-go test ./...                         # run all tests
-```
+- `main.go` / `app.go` is the only composition root — dependency wiring happens there, not inside `internal/`.

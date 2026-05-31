@@ -2,11 +2,7 @@ module github.com/ak1m1tsu/lrclib
 
 go 1.26.3
 
-require (
-	github.com/a-h/templ v0.3.1020
-	github.com/gorilla/mux v1.8.1
-	github.com/wailsapp/wails/v2 v2.12.0
-)
+require github.com/wailsapp/wails/v2 v2.12.0
 
 require (
 	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
