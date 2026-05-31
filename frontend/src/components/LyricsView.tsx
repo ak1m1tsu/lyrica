@@ -4,12 +4,16 @@ import { EmptyState } from './EmptyState'
 import { ErrorBlock } from './ErrorBlock'
 import { ProgressBar } from './ProgressBar'
 import { formatDuration } from '../utils/formatting'
+import { FavoriteButton } from './FavoriteButton'
+import { ExportMenu } from './ExportMenu'
 
 interface Props {
   track: Track
   onBack: () => void
   error?: string | null
   loading?: boolean
+  isFavorite?: boolean
+  onToggleFavorite?: () => Promise<void>
 }
 
 function extractTimestamp(line: string): string {
@@ -28,7 +32,7 @@ function extractLyricText(line: string): string {
   return line
 }
 
-export function LyricsView({ track, onBack, error, loading }: Props) {
+export function LyricsView({ track, onBack, error, loading, isFavorite = false, onToggleFavorite }: Props) {
   const [plain, setPlain] = useState(false)
 
   const renderLyrics = () => {
@@ -85,7 +89,15 @@ export function LyricsView({ track, onBack, error, loading }: Props) {
       </button>
 
       <div>
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{track.trackName}</h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{track.trackName}</h1>
+          <div className="flex shrink-0 items-center gap-1">
+            {onToggleFavorite && (
+              <FavoriteButton isFavorite={isFavorite} onToggle={onToggleFavorite} />
+            )}
+            <ExportMenu track={track} />
+          </div>
+        </div>
         <p className="text-gray-600 dark:text-gray-400">
           {track.artistName}
           {track.albumName ? ` — ${track.albumName}` : ''}
