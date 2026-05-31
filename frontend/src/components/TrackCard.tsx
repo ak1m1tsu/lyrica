@@ -1,3 +1,5 @@
+import { formatDuration } from '../utils/formatting'
+
 interface Track {
   id: number
   trackName: string
@@ -14,26 +16,21 @@ interface Props {
   onSelect: (track: Track) => void
 }
 
-function formatDuration(seconds: number): string {
-  const s = Math.floor(seconds)
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
-}
-
 export function TrackCard({ track, onSelect }: Props) {
   const badge = track.instrumental
-    ? { label: 'Instrumental', className: 'bg-gray-700 text-gray-300' }
+    ? { label: 'Instrumental', className: 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }
     : track.syncedLyrics
-    ? { label: 'Synced', className: 'bg-blue-900 text-blue-300' }
-    : { label: 'Plain', className: 'bg-gray-700 text-gray-300' }
+    ? { label: 'Synced', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' }
+    : { label: 'Plain', className: 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }
 
   return (
-    <div
-      className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-3 hover:bg-white/10 cursor-pointer transition-colors"
+    <button
+      className="flex w-full items-center justify-between rounded-lg bg-gray-100 dark:bg-white/5 px-4 py-3 hover:bg-gray-200 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors text-left"
       onClick={() => onSelect(track)}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-white">{track.trackName}</p>
-        <p className="truncate text-sm text-gray-400">
+        <p className="truncate font-medium text-gray-900 dark:text-white">{track.trackName}</p>
+        <p className="truncate text-sm text-gray-600 dark:text-gray-400">
           {track.artistName}{track.albumName ? ` — ${track.albumName}` : ''}
         </p>
       </div>
@@ -43,7 +40,7 @@ export function TrackCard({ track, onSelect }: Props) {
         </span>
         <span className="text-xs text-gray-500">{formatDuration(track.duration)}</span>
       </div>
-    </div>
+    </button>
   )
 }
 

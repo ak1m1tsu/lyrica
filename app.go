@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/ak1m1tsu/lrclib/internal/lrclib"
 )
@@ -21,6 +22,7 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) Search(query string) ([]lrclib.Track, error) {
+	query = strings.TrimSpace(query)
 	if query == "" {
 		return []lrclib.Track{}, nil
 	}
@@ -35,6 +37,9 @@ func (a *App) Search(query string) ([]lrclib.Track, error) {
 }
 
 func (a *App) GetByID(id int) (*lrclib.Track, error) {
+	if id <= 0 {
+		return nil, errors.New("invalid track ID")
+	}
 	track, err := a.client.GetByID(a.ctx, id)
 	if errors.Is(err, lrclib.ErrNotFound) {
 		return nil, errors.New("Track not found.")

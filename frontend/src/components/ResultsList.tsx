@@ -11,10 +11,12 @@ export function ResultsList({ tracks, onSelect }: Props) {
     return <EmptyState message="No results found." />
   }
   return (
-    <div className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2">
       {tracks.map(t => (
-        <TrackCard key={t.id} track={t} onSelect={onSelect} />
+        <li key={t.id}>
+          <TrackCard track={t} onSelect={onSelect} />
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }

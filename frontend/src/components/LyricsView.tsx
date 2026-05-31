@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { Track } from './TrackCard'
 import { EmptyState } from './EmptyState'
 import { ErrorBlock } from './ErrorBlock'
+import { ProgressBar } from './ProgressBar'
+import { formatDuration } from '../utils/formatting'
 
 interface Props {
   track: Track
   onBack: () => void
   error?: string | null
+  loading?: boolean
 }
 
 function extractTimestamp(line: string): string {
@@ -25,15 +28,11 @@ function extractLyricText(line: string): string {
   return line
 }
 
-function formatDuration(seconds: number): string {
-  const s = Math.floor(seconds)
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
-}
-
-export function LyricsView({ track, onBack, error }: Props) {
+export function LyricsView({ track, onBack, error, loading }: Props) {
   const [plain, setPlain] = useState(false)
 
   const renderLyrics = () => {
+    if (loading) return <ProgressBar />
     if (error) return <ErrorBlock message={error} />
     if (track.instrumental) return <EmptyState message="This track is instrumental." />
 
@@ -42,7 +41,7 @@ export function LyricsView({ track, onBack, error }: Props) {
       if (!plain && track.plainLyrics) {
         return (
           <div>
-            <p className="mb-3 text-sm text-yellow-500">Synced lyrics unavailable — showing plain.</p>
+            <p className="mb-3 text-sm text-yellow-600 dark:text-yellow-500">Synced lyrics unavailable — showing plain.</p>
             {renderPlainText(track.plainLyrics)}
           </div>
         )
@@ -56,7 +55,7 @@ export function LyricsView({ track, onBack, error }: Props) {
   const renderPlainText = (text: string) => (
     <div className="space-y-1">
       {text.split('\n').map((line, i) => (
-        <p key={i} className="text-gray-200">{line || <br />}</p>
+        <p key={i} className="text-gray-700 dark:text-gray-200">{line || <br />}</p>
       ))}
     </div>
   )
@@ -68,8 +67,8 @@ export function LyricsView({ track, onBack, error }: Props) {
         const lyric = extractLyricText(line)
         return (
           <div key={i} className="flex gap-3">
-            {ts && <span className="shrink-0 text-right text-xs text-blue-400 w-16 pt-0.5">{ts}</span>}
-            <span className="text-gray-200">{lyric}</span>
+            {ts && <span className="shrink-0 text-right text-xs text-blue-600 dark:text-blue-400 w-16 pt-0.5">{ts}</span>}
+            <span className="text-gray-700 dark:text-gray-200">{lyric}</span>
           </div>
         )
       })}
@@ -80,14 +79,14 @@ export function LyricsView({ track, onBack, error }: Props) {
     <div className="flex flex-col gap-4 px-4 py-6 max-w-2xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors w-fit"
+        className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors w-fit"
       >
         ← Back to search
       </button>
 
       <div>
-        <h1 className="text-xl font-semibold text-white">{track.trackName}</h1>
-        <p className="text-gray-400">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{track.trackName}</h1>
+        <p className="text-gray-600 dark:text-gray-400">
           {track.artistName}
           {track.albumName ? ` — ${track.albumName}` : ''}
           {track.duration ? ` · ${formatDuration(track.duration)}` : ''}
@@ -97,17 +96,19 @@ export function LyricsView({ track, onBack, error }: Props) {
       {!track.instrumental && (
         <div className="flex gap-2">
           <button
+            aria-pressed={!plain}
             onClick={() => setPlain(false)}
             className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-              !plain ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-400 hover:bg-white/20'
+              !plain ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20'
             }`}
           >
             Synced
           </button>
           <button
+            aria-pressed={plain}
             onClick={() => setPlain(true)}
             className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-              plain ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-400 hover:bg-white/20'
+              plain ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20'
             }`}
           >
             Plain
@@ -115,7 +116,7 @@ export function LyricsView({ track, onBack, error }: Props) {
         </div>
       )}
 
-      <div className="max-h-[60vh] overflow-y-auto rounded-lg bg-white/5 p-4 font-mono text-sm">
+      <div className="max-h-[60vh] overflow-y-auto rounded-lg bg-gray-100 dark:bg-white/5 p-4 font-mono text-sm">
         {renderLyrics()}
       </div>
     </div>

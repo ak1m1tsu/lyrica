@@ -58,6 +58,7 @@ func (c *Client) Search(ctx context.Context, query string) ([]Track, error) {
 	if err != nil {
 		return nil, fmt.Errorf("lrclib: build request: %w", err)
 	}
+	req.Header.Set("User-Agent", "lrclib-desktop/1.0")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -69,6 +70,8 @@ func (c *Client) Search(ctx context.Context, query string) ([]Track, error) {
 	case http.StatusOK:
 	case http.StatusNotFound:
 		return nil, ErrNotFound
+	case http.StatusTooManyRequests:
+		return nil, fmt.Errorf("lrclib: rate limited, try again later")
 	default:
 		return nil, fmt.Errorf("lrclib: unexpected status %s", resp.Status)
 	}
@@ -93,6 +96,7 @@ func (c *Client) GetByID(ctx context.Context, id int) (*Track, error) {
 	if err != nil {
 		return nil, fmt.Errorf("lrclib: build request: %w", err)
 	}
+	req.Header.Set("User-Agent", "lrclib-desktop/1.0")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
@@ -104,6 +108,8 @@ func (c *Client) GetByID(ctx context.Context, id int) (*Track, error) {
 	case http.StatusOK:
 	case http.StatusNotFound:
 		return nil, ErrNotFound
+	case http.StatusTooManyRequests:
+		return nil, fmt.Errorf("lrclib: rate limited, try again later")
 	default:
 		return nil, fmt.Errorf("lrclib: unexpected status %s", resp.Status)
 	}
