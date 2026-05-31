@@ -1,4 +1,4 @@
-export namespace lrclib {
+export namespace domain {
 	
 	export class Track {
 	    id: number;
