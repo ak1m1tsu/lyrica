@@ -1,4 +1,4 @@
-# lrclib
+# Lyrica
 
 A desktop application that searches and displays synchronized and plain-text lyrics sourced from [lrclib.net](https://lrclib.net). Runs on Windows and macOS.
 
@@ -16,8 +16,8 @@ Pre-built binaries are published on [GitHub Releases](../../releases):
 
 | Platform | File |
 |---|---|
-| Windows | `lrclib-amd64-installer.exe` (NSIS installer) |
-| macOS | `lrclib-macos.zip` (universal `.app`) |
+| Windows | `lyrica-amd64-installer.exe` (NSIS installer) |
+| macOS | `lyrica-macos.zip` (universal `.app`) |
 
 ## Stack
 
@@ -53,8 +53,8 @@ After `wails generate module`, Wails regenerates the TypeScript bindings in `fro
 |---|---|
 | `main.go` | Wails entry point — frameless window config (1024×768), binds `App` |
 | `app.go` | `App` struct — all RPC methods exposed to the frontend |
-| `favorites.go` | `favoritesManager` — thread-safe favorites persistence |
-| `internal/lrclib/` | HTTP client for the LRCLib.net API |
+| `internal/infrastructure/storage/` | SQLite-backed favorites store |
+| `internal/infrastructure/lrclib/` | HTTP client for the LRCLib.net API |
 | `frontend/src/` | React + TypeScript UI components and hooks |
 | `frontend/wailsjs/` | Auto-generated TypeScript bindings (do not edit manually) |
 

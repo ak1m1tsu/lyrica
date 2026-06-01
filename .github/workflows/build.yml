@@ -34,8 +34,8 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: lrclib-windows
-          path: build/bin/lrclib-amd64-installer.exe
+          name: lyrica-windows
+          path: build/bin/lyrica-amd64-installer.exe
 
   build-macos:
     runs-on: macos-latest
@@ -57,12 +57,12 @@ jobs:
         run: wails build --platform darwin/universal
 
       - name: Zip app bundle
-        run: cd build/bin && zip -r lrclib-macos.zip lrclib.app
+        run: cd build/bin && zip -r lyrica-macos.zip lyrica.app
 
       - uses: actions/upload-artifact@v7
         with:
-          name: lrclib-macos
-          path: build/bin/lrclib-macos.zip
+          name: lyrica-macos
+          path: build/bin/lyrica-macos.zip
 
   release:
     needs: [build-windows, build-macos]
@@ -74,13 +74,13 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with:
-          name: lrclib-windows
+          name: lyrica-windows
           path: artifacts
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v8
         with:
-          name: lrclib-macos
+          name: lyrica-macos
           path: artifacts
 
       - name: Create GitHub Release
