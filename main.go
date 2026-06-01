@@ -29,7 +29,7 @@ func main() {
 			slog.Error("favorites store close failed", "error", err)
 		}
 	}()
-	lyrics := service.NewLyrics(infralrclib.New())
+	lyrics := service.NewLyrics(infralrclib.NewCachingClient(infralrclib.New()))
 	favorites := service.NewFavorites(store)
 	app := NewApp(lyrics, favorites)
 	err := wails.Run(&options.App{
