@@ -18,19 +18,19 @@ interface Props {
 
 export function TrackCard({ track, onSelect }: Props) {
   const badge = track.instrumental
-    ? { label: 'Instrumental', className: 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }
+    ? { label: 'Instrumental', className: 'bg-[#0f1117]/10 text-[#0f1117]/70 dark:bg-white/10 dark:text-white/70' }
     : track.syncedLyrics
-    ? { label: 'Synced', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' }
-    : { label: 'Plain', className: 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }
+    ? { label: 'Synced', className: 'bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1] text-white' }
+    : { label: 'Plain', className: 'bg-[#0f1117]/10 text-[#0f1117]/70 dark:bg-white/10 dark:text-white/70' }
 
   return (
     <button
-      className="flex w-full items-center justify-between rounded-lg bg-gray-100 dark:bg-white/5 px-4 py-3 hover:bg-gray-200 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors text-left"
+      className="flex w-full items-center justify-between rounded-lg bg-[#0f1117]/5 dark:bg-white/5 px-4 py-3 hover:bg-[#0f1117]/10 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9B84D1] transition-colors text-left"
       onClick={() => onSelect(track)}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-gray-900 dark:text-white">{track.trackName}</p>
-        <p className="truncate text-sm text-gray-600 dark:text-gray-400">
+        <p className="truncate font-medium text-[#0f1117] dark:text-white">{track.trackName}</p>
+        <p className="truncate text-sm text-[#0f1117]/60 dark:text-white/60">
           {track.artistName}{track.albumName ? ` — ${track.albumName}` : ''}
         </p>
       </div>
@@ -38,7 +38,7 @@ export function TrackCard({ track, onSelect }: Props) {
         <span className={`rounded px-2 py-0.5 text-xs font-medium ${badge.className}`}>
           {badge.label}
         </span>
-        <span className="text-xs text-gray-500">{formatDuration(track.duration)}</span>
+        <span className="text-xs text-[#0f1117]/50 dark:text-white/50">{formatDuration(track.duration)}</span>
       </div>
     </button>
   )

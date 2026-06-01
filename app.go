@@ -12,7 +12,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const appVersion = "2.1.0"
+const appVersion = "3.0.0"
 
 // App is the Wails-bound adapter. It owns the Wails runtime context and
 // delegates all business logic to the injected services.

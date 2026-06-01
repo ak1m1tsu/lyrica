@@ -49,7 +49,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen flex-col dark:bg-[#0f1117] bg-gray-50 dark:text-white text-gray-900 overflow-hidden">
+    <div className="flex h-screen flex-col dark:bg-[#0f1117] bg-white dark:text-white text-[#0f1117] overflow-hidden">
       <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={() => setSettingsOpen(true)} />
       <div className="flex-1 overflow-y-auto">
         {view === 'home' && (

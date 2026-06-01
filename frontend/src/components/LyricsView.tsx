@@ -59,7 +59,7 @@ export function LyricsView({ track, onBack, error, loading, isFavorite = false, 
   const renderPlainText = (text: string) => (
     <div className="space-y-1">
       {text.split('\n').map((line, i) => (
-        <p key={i} className="text-gray-700 dark:text-gray-200">{line || <br />}</p>
+        <p key={i} className="text-[#0f1117]/90 dark:text-white/90">{line || <br />}</p>
       ))}
     </div>
   )
@@ -71,8 +71,8 @@ export function LyricsView({ track, onBack, error, loading, isFavorite = false, 
         const lyric = extractLyricText(line)
         return (
           <div key={i} className="flex gap-3">
-            {ts && <span className="shrink-0 text-right text-xs text-blue-600 dark:text-blue-400 w-16 pt-0.5">{ts}</span>}
-            <span className="text-gray-700 dark:text-gray-200">{lyric}</span>
+            {ts && <span className="shrink-0 text-right text-xs text-[#9B84D1] dark:text-[#C8B1F3] w-16 pt-0.5">{ts}</span>}
+            <span className="text-[#0f1117]/90 dark:text-white/90">{lyric}</span>
           </div>
         )
       })}
@@ -83,14 +83,14 @@ export function LyricsView({ track, onBack, error, loading, isFavorite = false, 
     <div className="flex flex-col gap-4 px-4 py-6 max-w-2xl mx-auto">
       <button
         onClick={onBack}
-        className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors w-fit"
+        className="flex items-center gap-1 text-sm text-[#0f1117]/60 dark:text-white/60 hover:text-[#0f1117] dark:hover:text-white transition-colors w-fit"
       >
         ← Back to search
       </button>
 
       <div>
         <div className="flex items-start justify-between gap-2">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{track.trackName}</h1>
+          <h1 className="text-xl font-semibold text-[#0f1117] dark:text-white">{track.trackName}</h1>
           <div className="flex shrink-0 items-center gap-1">
             {onToggleFavorite && (
               <FavoriteButton isFavorite={isFavorite} onToggle={onToggleFavorite} />
@@ -98,7 +98,7 @@ export function LyricsView({ track, onBack, error, loading, isFavorite = false, 
             <ExportMenu track={track} />
           </div>
         </div>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-[#0f1117]/60 dark:text-white/60">
           {track.artistName}
           {track.albumName ? ` — ${track.albumName}` : ''}
           {track.duration ? ` · ${formatDuration(track.duration)}` : ''}
@@ -111,7 +111,7 @@ export function LyricsView({ track, onBack, error, loading, isFavorite = false, 
             aria-pressed={!plain}
             onClick={() => setPlain(false)}
             className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-              !plain ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20'
+              !plain ? 'bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1] text-white' : 'bg-[#0f1117]/10 text-[#0f1117]/60 hover:bg-[#0f1117]/20 dark:bg-white/10 dark:text-white/60 dark:hover:bg-white/20'
             }`}
           >
             Synced
@@ -120,7 +120,7 @@ export function LyricsView({ track, onBack, error, loading, isFavorite = false, 
             aria-pressed={plain}
             onClick={() => setPlain(true)}
             className={`rounded px-3 py-1 text-sm font-medium transition-colors ${
-              plain ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-white/20'
+              plain ? 'bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1] text-white' : 'bg-[#0f1117]/10 text-[#0f1117]/60 hover:bg-[#0f1117]/20 dark:bg-white/10 dark:text-white/60 dark:hover:bg-white/20'
             }`}
           >
             Plain
@@ -128,7 +128,7 @@ export function LyricsView({ track, onBack, error, loading, isFavorite = false, 
         </div>
       )}
 
-      <div className="max-h-[60vh] overflow-y-auto rounded-lg bg-gray-100 dark:bg-white/5 p-4 font-mono text-sm">
+      <div className="lyrics-scroll max-h-[60vh] overflow-y-auto rounded-lg bg-[#0f1117]/5 dark:bg-white/5 p-4 font-mono text-sm">
         {renderLyrics()}
       </div>
     </div>

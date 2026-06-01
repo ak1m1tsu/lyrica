@@ -16,11 +16,11 @@ export function SearchBar({ onSearch }: Props) {
         name="q"
         aria-label="Search for a song"
         placeholder="Search for a song..."
-        className="flex-1 rounded-lg bg-gray-100 dark:bg-white/10 px-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none ring-1 ring-gray-300 dark:ring-white/10 focus:ring-gray-400 dark:focus:ring-white/30 transition-all"
+        className="flex-1 rounded-lg bg-[#0f1117]/5 dark:bg-white/5 px-4 py-3 text-[#0f1117] dark:text-white placeholder-[#0f1117]/40 dark:placeholder-white/30 outline-none ring-1 ring-[#0f1117]/20 dark:ring-white/10 focus:ring-[#9B84D1] dark:focus:ring-white/30 transition-all"
       />
       <button
         type="submit"
-        className="rounded-lg bg-gray-100 dark:bg-white/10 px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/20 hover:text-gray-900 dark:hover:text-white transition-colors ring-1 ring-gray-300 dark:ring-white/10"
+        className="rounded-lg bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1] hover:from-[#D4C0F5] hover:to-[#A892D8] px-4 py-3 text-white transition-colors"
         aria-label="Search"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

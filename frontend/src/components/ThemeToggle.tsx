@@ -8,7 +8,7 @@ export function ThemeToggle({ theme, toggle }: Props) {
     <button
       onClick={toggle}
       aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-      className="flex h-9 w-11 items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-700 dark:hover:text-white transition-colors"
+      className="flex h-9 w-11 items-center justify-center text-[#0f1117]/40 dark:text-white/40 hover:bg-[#0f1117]/10 dark:hover:bg-white/10 hover:text-[#0f1117] dark:hover:text-white transition-colors"
     >
       {theme === 'dark' ? (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

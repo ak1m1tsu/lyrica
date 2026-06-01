@@ -13,10 +13,10 @@ interface TitleBarProps {
 export function TitleBar({ theme, toggle, onFavorites, onAbout, onSettings }: TitleBarProps) {
   return (
     <div
-      className="flex h-9 shrink-0 items-center justify-between dark:bg-[#0f1117] bg-gray-100 px-3 select-none"
+      className="flex h-9 shrink-0 items-center justify-between dark:bg-[#0f1117] bg-white px-3 select-none"
       style={{ '--wails-draggable': 'drag' } as React.CSSProperties}
     >
-      <span className="text-xs font-semibold tracking-widest dark:text-gray-600 text-gray-400 uppercase">Lyrica</span>
+      <span className="text-xs font-semibold tracking-widest dark:text-white/30 text-[#0f1117]/40 uppercase">Lyrica</span>
 
       <div
         className="flex items-center"
@@ -25,7 +25,7 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout, onSettings }: Ti
         <button
           onClick={onFavorites}
           aria-label="Open favorites"
-          className="flex h-9 w-11 items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+          className="flex h-9 w-11 items-center justify-center text-[#0f1117]/40 dark:text-white/40 hover:bg-[#0f1117]/10 dark:hover:bg-white/10 hover:text-red-500 dark:hover:text-red-400 transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -36,7 +36,7 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout, onSettings }: Ti
         <button
           onClick={onSettings}
           aria-label="Settings"
-          className="flex h-9 w-11 items-center justify-center text-gray-500 dark:hover:bg-white/10 hover:bg-gray-200 hover:text-white transition-colors"
+          className="flex h-9 w-11 items-center justify-center text-[#0f1117]/40 dark:text-white/40 dark:hover:bg-white/10 hover:bg-[#0f1117]/10 dark:hover:text-white hover:text-[#0f1117] transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
@@ -47,7 +47,7 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout, onSettings }: Ti
         <button
           onClick={onAbout}
           aria-label="About"
-          className="flex h-9 w-11 items-center justify-center text-gray-500 dark:hover:bg-white/10 hover:bg-gray-200 hover:text-white transition-colors text-xs font-bold"
+          className="flex h-9 w-11 items-center justify-center text-[#0f1117]/40 dark:text-white/40 dark:hover:bg-white/10 hover:bg-[#0f1117]/10 dark:hover:text-white hover:text-[#0f1117] transition-colors text-xs font-bold"
         >
           ?
         </button>
@@ -55,7 +55,7 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout, onSettings }: Ti
         <button
           onClick={WindowMinimise}
           aria-label="Minimize"
-          className="flex h-9 w-11 items-center justify-center text-gray-500 dark:hover:bg-white/10 hover:bg-gray-200 hover:text-white transition-colors"
+          className="flex h-9 w-11 items-center justify-center text-[#0f1117]/40 dark:text-white/40 dark:hover:bg-white/10 hover:bg-[#0f1117]/10 dark:hover:text-white hover:text-[#0f1117] transition-colors"
         >
           <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor">
             <rect width="10" height="1" />
@@ -65,7 +65,7 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout, onSettings }: Ti
         <button
           onClick={WindowToggleMaximise}
           aria-label="Maximize"
-          className="flex h-9 w-11 items-center justify-center text-gray-500 dark:hover:bg-white/10 hover:bg-gray-200 hover:text-white transition-colors"
+          className="flex h-9 w-11 items-center justify-center text-[#0f1117]/40 dark:text-white/40 dark:hover:bg-white/10 hover:bg-[#0f1117]/10 dark:hover:text-white hover:text-[#0f1117] transition-colors"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
             <rect x="0.5" y="0.5" width="9" height="9" />
