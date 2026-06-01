@@ -26,6 +26,10 @@ export function GetCloseToTray() {
   return window['go']['main']['App']['GetCloseToTray']();
 }
 
+export function GetDiscordPresence() {
+  return window['go']['main']['App']['GetDiscordPresence']();
+}
+
 export function GetFavorites() {
   return window['go']['main']['App']['GetFavorites']();
 }
@@ -56,4 +60,20 @@ export function Search(arg1) {
 
 export function SetCloseToTray(arg1) {
   return window['go']['main']['App']['SetCloseToTray'](arg1);
+}
+
+export function SetDiscordPresence(arg1) {
+  return window['go']['main']['App']['SetDiscordPresence'](arg1);
+}
+
+export function UpdatePresenceIdle() {
+  return window['go']['main']['App']['UpdatePresenceIdle']();
+}
+
+export function UpdatePresenceSearching(arg1) {
+  return window['go']['main']['App']['UpdatePresenceSearching'](arg1);
+}
+
+export function UpdatePresenceTrack(arg1, arg2, arg3) {
+  return window['go']['main']['App']['UpdatePresenceTrack'](arg1, arg2, arg3);
 }

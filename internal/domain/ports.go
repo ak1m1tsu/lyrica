@@ -30,4 +30,8 @@ type FavoritesStore interface {
 	GetCloseToTray() bool
 	// SetCloseToTray persists the close-to-tray preference.
 	SetCloseToTray(ctx context.Context, enabled bool) error
+	// GetDiscordPresence returns the persisted Discord Rich Presence preference.
+	GetDiscordPresence() bool
+	// SetDiscordPresence persists the Discord Rich Presence preference.
+	SetDiscordPresence(ctx context.Context, enabled bool) error
 }

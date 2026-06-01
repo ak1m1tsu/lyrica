@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { GetCloseToTray, SetCloseToTray } from '../../wailsjs/go/main/App'
+import { GetCloseToTray, SetCloseToTray, GetDiscordPresence, SetDiscordPresence } from '../../wailsjs/go/main/App'
 
 interface SettingsModalProps {
   open: boolean
@@ -8,9 +8,13 @@ interface SettingsModalProps {
 
 export function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [closeToTray, setCloseToTray] = useState(false)
+  const [discordPresence, setDiscordPresence] = useState(false)
 
   useEffect(() => {
-    if (open) GetCloseToTray().then(setCloseToTray)
+    if (open) {
+      GetCloseToTray().then(setCloseToTray)
+      GetDiscordPresence().then(setDiscordPresence)
+    }
   }, [open])
 
   if (!open) return null
@@ -19,6 +23,12 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     const next = !closeToTray
     setCloseToTray(next)
     await SetCloseToTray(next)
+  }
+
+  async function handleDiscordToggle() {
+    const next = !discordPresence
+    setDiscordPresence(next)
+    await SetDiscordPresence(next)
   }
 
   return (
@@ -67,6 +77,30 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
           <p className="text-xs dark:text-white/40 text-[#0f1117]/40">
             When enabled, closing the window keeps Lyrica running in the system tray.
+          </p>
+
+          <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+            <span className="text-sm dark:text-white/80 text-[#0f1117]/80">Discord Rich Presence</span>
+            <button
+              role="switch"
+              aria-checked={discordPresence}
+              onClick={handleDiscordToggle}
+              className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                discordPresence
+                  ? 'bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1]'
+                  : 'dark:bg-white/20 bg-[#0f1117]/20'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 ${
+                  discordPresence ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </label>
+
+          <p className="text-xs dark:text-white/40 text-[#0f1117]/40">
+            Show current track on your Discord profile.
           </p>
         </div>
       </div>

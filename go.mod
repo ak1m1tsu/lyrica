@@ -6,6 +6,7 @@ require (
 	fyne.io/systray v1.12.1
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/hashicorp/golang-lru/v2 v2.0.7
+	github.com/hugolgst/rich-go v0.0.0-20240715122152-74618cc1ace2
 	github.com/wailsapp/wails/v2 v2.12.0
 	modernc.org/sqlite v1.51.0
 )
@@ -44,6 +45,7 @@ require (
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
+	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect

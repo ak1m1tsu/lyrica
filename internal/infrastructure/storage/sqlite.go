@@ -22,8 +22,9 @@ const (
 
 // config holds the persisted application settings.
 type config struct {
-	FavoritesDir string `json:"favoritesDir"`
-	CloseToTray  bool   `json:"closeToTray"`
+	FavoritesDir   string `json:"favoritesDir"`
+	CloseToTray    bool   `json:"closeToTray"`
+	DiscordPresence bool  `json:"discordPresence"`
 }
 
 func defaultConfigDir() string {
@@ -321,5 +322,23 @@ func (s *SQLiteStore) SetCloseToTray(ctx context.Context, enabled bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.cfg.CloseToTray = enabled
+	return s.saveConfig()
+}
+
+// GetDiscordPresence returns the persisted Discord Rich Presence preference.
+func (s *SQLiteStore) GetDiscordPresence() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.DiscordPresence
+}
+
+// SetDiscordPresence persists the Discord Rich Presence preference.
+func (s *SQLiteStore) SetDiscordPresence(ctx context.Context, enabled bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.DiscordPresence = enabled
 	return s.saveConfig()
 }

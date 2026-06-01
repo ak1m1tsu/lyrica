@@ -55,3 +55,13 @@ func (s *Favorites) CloseToTray() bool {
 func (s *Favorites) SetCloseToTray(ctx context.Context, enabled bool) error {
 	return s.store.SetCloseToTray(ctx, enabled)
 }
+
+// DiscordPresence returns the persisted Discord Rich Presence preference.
+func (s *Favorites) DiscordPresence() bool {
+	return s.store.GetDiscordPresence()
+}
+
+// SetDiscordPresence persists the Discord Rich Presence preference.
+func (s *Favorites) SetDiscordPresence(ctx context.Context, enabled bool) error {
+	return s.store.SetDiscordPresence(ctx, enabled)
+}

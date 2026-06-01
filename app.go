@@ -12,7 +12,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-const appVersion = "3.0.0"
+const appVersion = "3.1.0"
 
 // App is the Wails-bound adapter. It owns the Wails runtime context and
 // delegates all business logic to the injected services.
@@ -20,17 +20,22 @@ type App struct {
 	ctx           context.Context
 	lyrics        *service.Lyrics
 	favorites     *service.Favorites
+	discord       *discordPresence
 	windowVisible bool
 }
 
 // NewApp wires the infrastructure into the services and returns the adapter.
 func NewApp(lyrics *service.Lyrics, favorites *service.Favorites) *App {
-	return &App{lyrics: lyrics, favorites: favorites}
+	return &App{lyrics: lyrics, favorites: favorites, discord: newDiscordPresence()}
 }
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.windowVisible = true
+	if a.favorites.DiscordPresence() {
+		a.discord.connect()
+		a.discord.setIdle()
+	}
 	go a.runTray()
 }
 
@@ -130,6 +135,7 @@ func (a *App) CloseApp() {
 		a.windowVisible = false
 		return
 	}
+	a.discord.disconnect()
 	runtime.Quit(a.ctx)
 }
 
@@ -141,6 +147,40 @@ func (a *App) GetCloseToTray() bool {
 // SetCloseToTray persists the close-to-tray preference.
 func (a *App) SetCloseToTray(enabled bool) error {
 	return a.favorites.SetCloseToTray(a.ctx, enabled)
+}
+
+// GetDiscordPresence returns whether Discord Rich Presence is enabled.
+func (a *App) GetDiscordPresence() bool {
+	return a.favorites.DiscordPresence()
+}
+
+// SetDiscordPresence enables or disables Discord Rich Presence.
+func (a *App) SetDiscordPresence(enabled bool) error {
+	if err := a.favorites.SetDiscordPresence(a.ctx, enabled); err != nil {
+		return err
+	}
+	if enabled {
+		a.discord.connect()
+		a.discord.setIdle()
+	} else {
+		a.discord.disconnect()
+	}
+	return nil
+}
+
+// UpdatePresenceIdle resets Discord presence to the idle browsing state.
+func (a *App) UpdatePresenceIdle() {
+	a.discord.setIdle()
+}
+
+// UpdatePresenceSearching sets Discord presence to reflect an active search query.
+func (a *App) UpdatePresenceSearching(query string) {
+	a.discord.setSearching(query)
+}
+
+// UpdatePresenceTrack sets Discord presence to the currently-viewed track.
+func (a *App) UpdatePresenceTrack(trackName, artistName string, synced bool) {
+	a.discord.setTrack(trackName, artistName, synced)
 }
 
 // sanitizeFilename replaces filesystem-reserved characters with underscores

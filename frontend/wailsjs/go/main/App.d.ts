@@ -14,6 +14,8 @@ export function GetByID(arg1:number):Promise<domain.Track>;
 
 export function GetCloseToTray():Promise<boolean>;
 
+export function GetDiscordPresence():Promise<boolean>;
+
 export function GetFavorites():Promise<Array<domain.Track>>;
 
 export function GetFavoritesDir():Promise<string>;
@@ -29,3 +31,11 @@ export function RemoveFavorite(arg1:number):Promise<void>;
 export function Search(arg1:string):Promise<Array<domain.Track>>;
 
 export function SetCloseToTray(arg1:boolean):Promise<void>;
+
+export function SetDiscordPresence(arg1:boolean):Promise<void>;
+
+export function UpdatePresenceIdle():Promise<void>;
+
+export function UpdatePresenceSearching(arg1:string):Promise<void>;
+
+export function UpdatePresenceTrack(arg1:string,arg2:string,arg3:boolean):Promise<void>;

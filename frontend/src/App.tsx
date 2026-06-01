@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GetByID } from '../wailsjs/go/main/App'
+import { GetByID, UpdatePresenceIdle, UpdatePresenceSearching, UpdatePresenceTrack } from '../wailsjs/go/main/App'
 import { SearchBar } from './components/SearchBar'
 import { ResultsList } from './components/ResultsList'
 import { LyricsView } from './components/LyricsView'
@@ -18,7 +18,7 @@ type View = 'home' | 'lyrics'
 export default function App() {
   const { theme, toggle } = useTheme()
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir } = useFavorites()
-  const { results, loading: searchLoading, error: searchError, search: handleSearch } = useSearch()
+  const { results, loading: searchLoading, error: searchError, search: handleSearchBase } = useSearch()
   const [favPanelOpen, setFavPanelOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -34,7 +34,10 @@ export default function App() {
     setView('lyrics')
     try {
       const full = await GetByID(track.id)
-      if (full) setSelectedTrack(full)
+      if (full) {
+        setSelectedTrack(full)
+        UpdatePresenceTrack(full.trackName, full.artistName, !!full.syncedLyrics)
+      }
     } catch (e: unknown) {
       setLyricsError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -46,6 +49,16 @@ export default function App() {
     setView('home')
     setSelectedTrack(null)
     setLyricsError(null)
+    UpdatePresenceIdle()
+  }
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      UpdatePresenceSearching(query.trim())
+    } else {
+      UpdatePresenceIdle()
+    }
+    handleSearchBase(query)
   }
 
   return (
