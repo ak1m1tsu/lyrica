@@ -1,4 +1,5 @@
-import { WindowMinimise, WindowToggleMaximise, Quit } from '../../wailsjs/runtime/runtime'
+import { WindowMinimise, WindowToggleMaximise } from '../../wailsjs/runtime/runtime'
+import { CloseApp } from '../../wailsjs/go/main/App'
 import { ThemeToggle } from './ThemeToggle'
 
 interface TitleBarProps {
@@ -6,9 +7,10 @@ interface TitleBarProps {
   toggle: () => void
   onFavorites: () => void
   onAbout: () => void
+  onSettings: () => void
 }
 
-export function TitleBar({ theme, toggle, onFavorites, onAbout }: TitleBarProps) {
+export function TitleBar({ theme, toggle, onFavorites, onAbout, onSettings }: TitleBarProps) {
   return (
     <div
       className="flex h-9 shrink-0 items-center justify-between dark:bg-[#0f1117] bg-gray-100 px-3 select-none"
@@ -30,6 +32,17 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout }: TitleBarProps)
           </svg>
         </button>
         <ThemeToggle theme={theme} toggle={toggle} />
+
+        <button
+          onClick={onSettings}
+          aria-label="Settings"
+          className="flex h-9 w-11 items-center justify-center text-gray-500 dark:hover:bg-white/10 hover:bg-gray-200 hover:text-white transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
 
         <button
           onClick={onAbout}
@@ -60,7 +73,7 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout }: TitleBarProps)
         </button>
 
         <button
-          onClick={Quit}
+          onClick={CloseApp}
           aria-label="Close"
           className="flex h-9 w-11 items-center justify-center text-gray-500 hover:bg-red-600 hover:text-white transition-colors"
         >

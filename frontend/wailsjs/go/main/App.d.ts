@@ -4,9 +4,15 @@ import {domain} from '../models';
 
 export function AddFavorite(arg1:domain.Track):Promise<void>;
 
+export function CloseApp():Promise<void>;
+
 export function ExportLyrics(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function GetAppIcon():Promise<string>;
+
 export function GetByID(arg1:number):Promise<domain.Track>;
+
+export function GetCloseToTray():Promise<boolean>;
 
 export function GetFavorites():Promise<Array<domain.Track>>;
 
@@ -21,3 +27,5 @@ export function PickFavoritesDir():Promise<string>;
 export function RemoveFavorite(arg1:number):Promise<void>;
 
 export function Search(arg1:string):Promise<Array<domain.Track>>;
+
+export function SetCloseToTray(arg1:boolean):Promise<void>;

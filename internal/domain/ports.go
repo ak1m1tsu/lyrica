@@ -26,4 +26,8 @@ type FavoritesStore interface {
 	GetDir() string
 	// SetDir changes the favorites storage directory, migrating existing data.
 	SetDir(ctx context.Context, newDir string) error
+	// GetCloseToTray returns the persisted close-to-tray preference.
+	GetCloseToTray() bool
+	// SetCloseToTray persists the close-to-tray preference.
+	SetCloseToTray(ctx context.Context, enabled bool) error
 }

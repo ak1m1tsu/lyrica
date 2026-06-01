@@ -23,6 +23,7 @@ const (
 // config holds the persisted application settings.
 type config struct {
 	FavoritesDir string `json:"favoritesDir"`
+	CloseToTray  bool   `json:"closeToTray"`
 }
 
 func defaultConfigDir() string {
@@ -303,4 +304,22 @@ func (s *SQLiteStore) SetDir(ctx context.Context, newDir string) error {
 	}
 	s.db = db
 	return nil
+}
+
+// GetCloseToTray returns the persisted close-to-tray preference.
+func (s *SQLiteStore) GetCloseToTray() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.CloseToTray
+}
+
+// SetCloseToTray persists the close-to-tray preference.
+func (s *SQLiteStore) SetCloseToTray(ctx context.Context, enabled bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.CloseToTray = enabled
+	return s.saveConfig()
 }

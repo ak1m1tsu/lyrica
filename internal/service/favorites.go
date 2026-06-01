@@ -45,3 +45,13 @@ func (s *Favorites) Dir() string {
 func (s *Favorites) SetDir(ctx context.Context, newDir string) error {
 	return s.store.SetDir(ctx, newDir)
 }
+
+// CloseToTray returns the persisted close-to-tray preference.
+func (s *Favorites) CloseToTray() bool {
+	return s.store.GetCloseToTray()
+}
+
+// SetCloseToTray persists the close-to-tray preference.
+func (s *Favorites) SetCloseToTray(ctx context.Context, enabled bool) error {
+	return s.store.SetCloseToTray(ctx, enabled)
+}

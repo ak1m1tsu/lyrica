@@ -6,12 +6,24 @@ export function AddFavorite(arg1) {
   return window['go']['main']['App']['AddFavorite'](arg1);
 }
 
+export function CloseApp() {
+  return window['go']['main']['App']['CloseApp']();
+}
+
 export function ExportLyrics(arg1, arg2, arg3) {
   return window['go']['main']['App']['ExportLyrics'](arg1, arg2, arg3);
 }
 
+export function GetAppIcon() {
+  return window['go']['main']['App']['GetAppIcon']();
+}
+
 export function GetByID(arg1) {
   return window['go']['main']['App']['GetByID'](arg1);
+}
+
+export function GetCloseToTray() {
+  return window['go']['main']['App']['GetCloseToTray']();
 }
 
 export function GetFavorites() {
@@ -40,4 +52,8 @@ export function RemoveFavorite(arg1) {
 
 export function Search(arg1) {
   return window['go']['main']['App']['Search'](arg1);
+}
+
+export function SetCloseToTray(arg1) {
+  return window['go']['main']['App']['SetCloseToTray'](arg1);
 }

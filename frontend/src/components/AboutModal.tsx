@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime'
-import { GetVersion } from '../../wailsjs/go/main/App'
+import { GetVersion, GetAppIcon } from '../../wailsjs/go/main/App'
 
 interface AboutModalProps {
   open: boolean
@@ -9,9 +9,13 @@ interface AboutModalProps {
 
 export function AboutModal({ open, onClose }: AboutModalProps) {
   const [version, setVersion] = useState('')
+  const [icon, setIcon] = useState('')
 
   useEffect(() => {
-    if (open) GetVersion().then(setVersion)
+    if (open) {
+      GetVersion().then(setVersion)
+      GetAppIcon().then(setIcon)
+    }
   }, [open])
 
   if (!open) return null
@@ -38,9 +42,12 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
         </button>
 
         <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-lg font-bold tracking-tight dark:text-white text-gray-900">Lyrica</h2>
-            <p className="text-xs dark:text-gray-400 text-gray-500 mt-0.5">Version {version}</p>
+          <div className="flex items-center gap-3">
+            {icon && <img src={icon} alt="Lyrica" className="w-12 h-12 rounded-xl" />}
+            <div>
+              <h2 className="text-lg font-bold tracking-tight dark:text-white text-gray-900">Lyrica</h2>
+              <p className="text-xs dark:text-gray-400 text-gray-500 mt-0.5">Version {version}</p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5 text-sm">

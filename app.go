@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"os"
 	"strings"
@@ -16,9 +17,10 @@ const appVersion = "2.0.0"
 // App is the Wails-bound adapter. It owns the Wails runtime context and
 // delegates all business logic to the injected services.
 type App struct {
-	ctx       context.Context
-	lyrics    *service.Lyrics
-	favorites *service.Favorites
+	ctx           context.Context
+	lyrics        *service.Lyrics
+	favorites     *service.Favorites
+	windowVisible bool
 }
 
 // NewApp wires the infrastructure into the services and returns the adapter.
@@ -28,11 +30,18 @@ func NewApp(lyrics *service.Lyrics, favorites *service.Favorites) *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.windowVisible = true
+	go a.runTray()
 }
 
 // GetVersion returns the application version string.
 func (a *App) GetVersion() string {
 	return appVersion
+}
+
+// GetAppIcon returns the app icon as a base64-encoded PNG data URI.
+func (a *App) GetAppIcon() string {
+	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(appIconData)
 }
 
 // Search returns tracks matching the query, or an empty slice when none match.
@@ -112,6 +121,26 @@ func (a *App) ExportLyrics(trackName, text, ext string) error {
 		path += ext
 	}
 	return os.WriteFile(path, []byte(text), 0644)
+}
+
+// CloseApp hides the window when close-to-tray is enabled, otherwise quits.
+func (a *App) CloseApp() {
+	if a.favorites.CloseToTray() {
+		runtime.WindowHide(a.ctx)
+		a.windowVisible = false
+		return
+	}
+	runtime.Quit(a.ctx)
+}
+
+// GetCloseToTray returns the persisted close-to-tray preference.
+func (a *App) GetCloseToTray() bool {
+	return a.favorites.CloseToTray()
+}
+
+// SetCloseToTray persists the close-to-tray preference.
+func (a *App) SetCloseToTray(enabled bool) error {
+	return a.favorites.SetCloseToTray(a.ctx, enabled)
 }
 
 // sanitizeFilename replaces filesystem-reserved characters with underscores
