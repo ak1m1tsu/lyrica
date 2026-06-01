@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"log/slog"
+	"os"
 
 	infralrclib "github.com/ak1m1tsu/lrclib/internal/infrastructure/lrclib"
 	"github.com/ak1m1tsu/lrclib/internal/infrastructure/storage"
@@ -23,7 +24,11 @@ const (
 )
 
 func main() {
-	store := storage.NewFileStore("")
+	store, err := storage.NewSQLiteStore("")
+	if err != nil {
+		slog.Error("failed to open favorites store", "error", err)
+		os.Exit(1)
+	}
 	defer func() {
 		if err := store.Close(); err != nil {
 			slog.Error("favorites store close failed", "error", err)
@@ -32,7 +37,7 @@ func main() {
 	lyrics := service.NewLyrics(infralrclib.NewCachingClient(infralrclib.New()))
 	favorites := service.NewFavorites(store)
 	app := NewApp(lyrics, favorites)
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title:            "lrclib",
 		Width:            windowWidth,
 		Height:           windowHeight,
