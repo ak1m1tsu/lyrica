@@ -11,12 +11,12 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/ak1m1tsu/lrclib/internal/domain"
+	"github.com/ak1m1tsu/lyrica/internal/domain"
 )
 
 const (
 	defaultBaseURL = "https://lrclib.net"
-	userAgent      = "lrclib-desktop/1.0"
+	userAgent      = "lyrica-desktop/1.0"
 	requestTimeout = 10 * time.Second
 )
 

@@ -1,6 +1,6 @@
 package lrclib
 
-import "github.com/ak1m1tsu/lrclib/internal/domain"
+import "github.com/ak1m1tsu/lyrica/internal/domain"
 
 // trackModel mirrors the JSON object returned by the lrclib.net API.
 type trackModel struct {

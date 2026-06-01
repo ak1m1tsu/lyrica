@@ -1,4 +1,4 @@
-module github.com/ak1m1tsu/lrclib
+module github.com/ak1m1tsu/lyrica
 
 go 1.26.3
 

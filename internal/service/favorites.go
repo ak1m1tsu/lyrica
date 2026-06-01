@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/ak1m1tsu/lrclib/internal/domain"
+	"github.com/ak1m1tsu/lyrica/internal/domain"
 )
 
 // Favorites exposes the favorites use cases on top of a domain.FavoritesStore.

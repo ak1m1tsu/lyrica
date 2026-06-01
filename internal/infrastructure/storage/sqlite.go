@@ -11,13 +11,13 @@ import (
 	"sync"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/ak1m1tsu/lrclib/internal/domain"
+	"github.com/ak1m1tsu/lyrica/internal/domain"
 	_ "modernc.org/sqlite"
 )
 
 const (
 	configFileName = "config.json"
-	dbFileName     = "lrclib.db"
+	dbFileName     = "lyrica.db"
 )
 
 // config holds the persisted application settings.
@@ -30,7 +30,7 @@ func defaultConfigDir() string {
 	if err != nil {
 		dir = "."
 	}
-	return filepath.Join(dir, "lrclib")
+	return filepath.Join(dir, "lyrica")
 }
 
 var _ domain.FavoritesStore = (*SQLiteStore)(nil)

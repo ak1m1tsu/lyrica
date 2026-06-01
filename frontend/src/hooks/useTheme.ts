@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 type Theme = 'dark' | 'light'
 
-const STORAGE_KEY = 'lrclib-theme'
+const STORAGE_KEY = 'lyrica-theme'
 
 export function useTheme(): { theme: Theme; toggle: () => void } {
   const [theme, setTheme] = useState<Theme>(() => {

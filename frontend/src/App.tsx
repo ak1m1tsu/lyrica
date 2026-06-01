@@ -53,7 +53,7 @@ export default function App() {
         {view === 'home' && (
           <div className="flex flex-col items-center justify-start px-4 pt-16 gap-6">
             <button onClick={() => setView('home')} className="text-2xl font-bold tracking-tight hover:opacity-80 transition-opacity">
-              lrclib
+              Lyrica
             </button>
             <SearchBar onSearch={handleSearch} />
             {searchLoading && <ProgressBar />}

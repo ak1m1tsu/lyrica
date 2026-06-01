@@ -12,6 +12,8 @@ export function GetFavorites():Promise<Array<domain.Track>>;
 
 export function GetFavoritesDir():Promise<string>;
 
+export function GetVersion():Promise<string>;
+
 export function IsFavorite(arg1:number):Promise<boolean>;
 
 export function PickFavoritesDir():Promise<string>;

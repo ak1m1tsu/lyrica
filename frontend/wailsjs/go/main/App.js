@@ -22,6 +22,10 @@ export function GetFavoritesDir() {
   return window['go']['main']['App']['GetFavoritesDir']();
 }
 
+export function GetVersion() {
+  return window['go']['main']['App']['GetVersion']();
+}
+
 export function IsFavorite(arg1) {
   return window['go']['main']['App']['IsFavorite'](arg1);
 }

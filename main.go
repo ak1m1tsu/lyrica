@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"os"
 
-	infralrclib "github.com/ak1m1tsu/lrclib/internal/infrastructure/lrclib"
-	"github.com/ak1m1tsu/lrclib/internal/infrastructure/storage"
-	"github.com/ak1m1tsu/lrclib/internal/service"
+	infralrclib "github.com/ak1m1tsu/lyrica/internal/infrastructure/lrclib"
+	"github.com/ak1m1tsu/lyrica/internal/infrastructure/storage"
+	"github.com/ak1m1tsu/lyrica/internal/service"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -38,7 +38,7 @@ func main() {
 	favorites := service.NewFavorites(store)
 	app := NewApp(lyrics, favorites)
 	err = wails.Run(&options.App{
-		Title:            "lrclib",
+		Title:            "Lyrica",
 		Width:            windowWidth,
 		Height:           windowHeight,
 		MinWidth:         windowMinWidth,

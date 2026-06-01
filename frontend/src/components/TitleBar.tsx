@@ -14,7 +14,7 @@ export function TitleBar({ theme, toggle, onFavorites, onAbout }: TitleBarProps)
       className="flex h-9 shrink-0 items-center justify-between dark:bg-[#0f1117] bg-gray-100 px-3 select-none"
       style={{ '--wails-draggable': 'drag' } as React.CSSProperties}
     >
-      <span className="text-xs font-semibold tracking-widest dark:text-gray-600 text-gray-400 uppercase">lrclib</span>
+      <span className="text-xs font-semibold tracking-widest dark:text-gray-600 text-gray-400 uppercase">Lyrica</span>
 
       <div
         className="flex items-center"

@@ -1,4 +1,4 @@
-// Package domain holds the core types and port interfaces of lrclib.
+// Package domain holds the core types and port interfaces of Lyrica.
 // It has no dependencies on infrastructure, services, or the Wails runtime.
 package domain
 

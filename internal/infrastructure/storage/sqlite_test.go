@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ak1m1tsu/lrclib/internal/domain"
+	"github.com/ak1m1tsu/lyrica/internal/domain"
 )
 
 var (

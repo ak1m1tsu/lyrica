@@ -6,10 +6,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ak1m1tsu/lrclib/internal/domain"
-	"github.com/ak1m1tsu/lrclib/internal/service"
+	"github.com/ak1m1tsu/lyrica/internal/domain"
+	"github.com/ak1m1tsu/lyrica/internal/service"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+const appVersion = "2.0.0"
 
 // App is the Wails-bound adapter. It owns the Wails runtime context and
 // delegates all business logic to the injected services.
@@ -26,6 +28,11 @@ func NewApp(lyrics *service.Lyrics, favorites *service.Favorites) *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+// GetVersion returns the application version string.
+func (a *App) GetVersion() string {
+	return appVersion
 }
 
 // Search returns tracks matching the query, or an empty slice when none match.

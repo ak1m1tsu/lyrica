@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime'
+import { GetVersion } from '../../wailsjs/go/main/App'
 
 interface AboutModalProps {
   open: boolean
@@ -6,6 +8,12 @@ interface AboutModalProps {
 }
 
 export function AboutModal({ open, onClose }: AboutModalProps) {
+  const [version, setVersion] = useState('')
+
+  useEffect(() => {
+    if (open) GetVersion().then(setVersion)
+  }, [open])
+
   if (!open) return null
 
   return (
@@ -31,8 +39,8 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
 
         <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-lg font-bold tracking-tight dark:text-white text-gray-900">lrclib</h2>
-            <p className="text-xs dark:text-gray-400 text-gray-500 mt-0.5">Version 1.1.1</p>
+            <h2 className="text-lg font-bold tracking-tight dark:text-white text-gray-900">Lyrica</h2>
+            <p className="text-xs dark:text-gray-400 text-gray-500 mt-0.5">Version {version}</p>
           </div>
 
           <div className="flex flex-col gap-1.5 text-sm">
@@ -43,10 +51,10 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
             <div className="flex justify-between items-center">
               <span className="dark:text-gray-400 text-gray-500">Source</span>
               <button
-                onClick={() => BrowserOpenURL('https://github.com/ak1m1tsu/lrclib')}
+                onClick={() => BrowserOpenURL('https://github.com/ak1m1tsu/lyrica')}
                 className="text-blue-500 hover:text-blue-400 font-medium transition-colors"
               >
-                github.com/ak1m1tsu/lrclib
+                github.com/ak1m1tsu/lyrica
               </button>
             </div>
           </div>

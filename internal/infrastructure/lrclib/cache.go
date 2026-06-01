@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ak1m1tsu/lrclib/internal/domain"
+	"github.com/ak1m1tsu/lyrica/internal/domain"
 	"github.com/hashicorp/golang-lru/v2/expirable"
 )
 
