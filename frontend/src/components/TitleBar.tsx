@@ -5,9 +5,10 @@ interface TitleBarProps {
   theme: 'dark' | 'light'
   toggle: () => void
   onFavorites: () => void
+  onAbout: () => void
 }
 
-export function TitleBar({ theme, toggle, onFavorites }: TitleBarProps) {
+export function TitleBar({ theme, toggle, onFavorites, onAbout }: TitleBarProps) {
   return (
     <div
       className="flex h-9 shrink-0 items-center justify-between dark:bg-[#0f1117] bg-gray-100 px-3 select-none"
@@ -29,6 +30,14 @@ export function TitleBar({ theme, toggle, onFavorites }: TitleBarProps) {
           </svg>
         </button>
         <ThemeToggle theme={theme} toggle={toggle} />
+
+        <button
+          onClick={onAbout}
+          aria-label="About"
+          className="flex h-9 w-11 items-center justify-center text-gray-500 dark:hover:bg-white/10 hover:bg-gray-200 hover:text-white transition-colors text-xs font-bold"
+        >
+          ?
+        </button>
 
         <button
           onClick={WindowMinimise}

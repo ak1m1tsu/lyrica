@@ -10,6 +10,7 @@ import { useTheme } from './hooks/useTheme'
 import { useFavorites } from './hooks/useFavorites'
 import { useSearch } from './hooks/useSearch'
 import { FavoritesPanel } from './components/FavoritesPanel'
+import { AboutModal } from './components/AboutModal'
 
 type View = 'home' | 'lyrics'
 
@@ -18,6 +19,7 @@ export default function App() {
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir } = useFavorites()
   const { results, loading: searchLoading, error: searchError, search: handleSearch } = useSearch()
   const [favPanelOpen, setFavPanelOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [view, setView] = useState<View>('home')
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
   const [lyricsLoading, setLyricsLoading] = useState(false)
@@ -46,7 +48,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col dark:bg-[#0f1117] bg-gray-50 dark:text-white text-gray-900 overflow-hidden">
-      <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} />
+      <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} />
       <div className="flex-1 overflow-y-auto">
         {view === 'home' && (
           <div className="flex flex-col items-center justify-start px-4 pt-16 gap-6">
@@ -84,6 +86,7 @@ export default function App() {
         onRemove={toggleFavorite}
         onPickDir={pickDir}
       />
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   )
 }
