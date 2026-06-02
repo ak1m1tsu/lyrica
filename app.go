@@ -4,15 +4,20 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ak1m1tsu/lyrica/internal/domain"
 	"github.com/ak1m1tsu/lyrica/internal/service"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"golang.org/x/oauth2"
 )
 
-const appVersion = "3.2.0"
+const appVersion = "3.3.0"
 
 // App is the Wails-bound adapter. It owns the Wails runtime context and
 // delegates all business logic to the injected services.
@@ -21,12 +26,13 @@ type App struct {
 	lyrics        *service.Lyrics
 	favorites     *service.Favorites
 	discord       *discordPresence
+	spotify       *spotifyService
 	windowVisible bool
 }
 
 // NewApp wires the infrastructure into the services and returns the adapter.
 func NewApp(lyrics *service.Lyrics, favorites *service.Favorites) *App {
-	return &App{lyrics: lyrics, favorites: favorites, discord: newDiscordPresence()}
+	return &App{lyrics: lyrics, favorites: favorites, discord: newDiscordPresence(), spotify: newSpotifyService()}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -35,6 +41,21 @@ func (a *App) startup(ctx context.Context) {
 	if a.favorites.DiscordPresence() {
 		a.discord.connect()
 		a.discord.setIdle()
+	}
+	if a.favorites.SpotifyEnabled() {
+		if access := a.favorites.SpotifyAccessToken(); access != "" {
+			auth := spotifyauth.New(
+				spotifyauth.WithRedirectURL(spotifyRedirectURI),
+				spotifyauth.WithScopes(spotifyauth.ScopeUserReadCurrentlyPlaying),
+				spotifyauth.WithClientID(spotifyClientID),
+			)
+			tok := &oauth2.Token{
+				AccessToken:  access,
+				RefreshToken: a.favorites.SpotifyRefreshToken(),
+				TokenType:    "Bearer",
+			}
+			a.spotify.startPolling(ctx, auth, tok, a.onSpotifyToken, a.onSpotifyTrack)
+		}
 	}
 	go a.runTray()
 }
@@ -136,6 +157,7 @@ func (a *App) CloseApp() {
 		return
 	}
 	a.discord.disconnect()
+	a.spotify.stopPolling()
 	runtime.Quit(a.ctx)
 }
 
@@ -181,6 +203,124 @@ func (a *App) UpdatePresenceSearching(query string) {
 // UpdatePresenceTrack sets Discord presence to the currently-viewed track.
 func (a *App) UpdatePresenceTrack(trackName, artistName string, synced bool) {
 	a.discord.setTrack(trackName, artistName, synced)
+}
+
+// onSpotifyToken persists refreshed Spotify tokens after a polling refresh.
+func (a *App) onSpotifyToken(access, refresh string) {
+	_ = a.favorites.SetSpotifyAccessToken(a.ctx, access)
+	if refresh != "" {
+		_ = a.favorites.SetSpotifyRefreshToken(a.ctx, refresh)
+	}
+}
+
+// onSpotifyTrack emits the currently-playing Spotify track to the frontend.
+func (a *App) onSpotifyTrack(trackName, artistName string) {
+	runtime.EventsEmit(a.ctx, "spotify:track", map[string]string{
+		"trackName":  trackName,
+		"artistName": artistName,
+	})
+}
+
+// GetSpotifyEnabled returns whether the Spotify integration is enabled.
+func (a *App) GetSpotifyEnabled() bool {
+	return a.favorites.SpotifyEnabled()
+}
+
+// SetSpotifyEnabled enables or disables the Spotify integration preference.
+func (a *App) SetSpotifyEnabled(enabled bool) error {
+	return a.favorites.SetSpotifyEnabled(a.ctx, enabled)
+}
+
+// ConnectSpotify runs the OAuth PKCE flow on a local HTTPS server, persists
+// the tokens, and starts polling.
+func (a *App) ConnectSpotify() error {
+	auth := spotifyauth.New(
+		spotifyauth.WithRedirectURL(spotifyRedirectURI),
+		spotifyauth.WithScopes(spotifyauth.ScopeUserReadCurrentlyPlaying),
+		spotifyauth.WithClientID(spotifyClientID),
+	)
+	verifier := oauth2.GenerateVerifier()
+	state := "lyrica-spotify"
+	authURL := auth.AuthURL(state, oauth2.S256ChallengeOption(verifier))
+
+	codeCh := make(chan string, 1)
+	errCh := make(chan error, 1)
+	mux := http.NewServeMux()
+	srv := &http.Server{Addr: ":27182", Handler: mux}
+	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("state") != state {
+			select {
+			case errCh <- errors.New("state mismatch"):
+			default:
+			}
+			http.Error(w, "state mismatch", http.StatusBadRequest)
+			return
+		}
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			select {
+			case errCh <- errors.New("no code in callback"):
+			default:
+			}
+			http.Error(w, "missing code", http.StatusBadRequest)
+			return
+		}
+		select {
+		case codeCh <- code:
+		default:
+		}
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, "<html><body><h2>Lyrica connected to Spotify!</h2><p>You can close this tab.</p></body></html>")
+	})
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			select {
+			case errCh <- err:
+			default:
+			}
+		}
+	}()
+	runtime.BrowserOpenURL(a.ctx, authURL)
+
+	ctx, cancel := context.WithTimeout(a.ctx, 120*time.Second)
+	defer cancel()
+	defer srv.Shutdown(context.Background()) //nolint:errcheck
+
+	select {
+	case code := <-codeCh:
+		token, err := auth.Exchange(ctx, code, oauth2.VerifierOption(verifier))
+		if err != nil {
+			return fmt.Errorf("Spotify authorization failed: %w", err)
+		}
+		if err := a.favorites.SetSpotifyAccessToken(a.ctx, token.AccessToken); err != nil {
+			return err
+		}
+		if err := a.favorites.SetSpotifyRefreshToken(a.ctx, token.RefreshToken); err != nil {
+			return err
+		}
+		if err := a.favorites.SetSpotifyEnabled(a.ctx, true); err != nil {
+			return err
+		}
+		a.spotify.stopPolling()
+		a.spotify.startPolling(a.ctx, auth, token, a.onSpotifyToken, a.onSpotifyTrack)
+		return nil
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+		return errors.New("Spotify authorization timed out. Please try again.")
+	}
+}
+
+// DisconnectSpotify stops polling and clears the persisted Spotify credentials.
+func (a *App) DisconnectSpotify() error {
+	a.spotify.stopPolling()
+	if err := a.favorites.SetSpotifyEnabled(a.ctx, false); err != nil {
+		return err
+	}
+	if err := a.favorites.SetSpotifyAccessToken(a.ctx, ""); err != nil {
+		return err
+	}
+	return a.favorites.SetSpotifyRefreshToken(a.ctx, "")
 }
 
 // sanitizeFilename replaces filesystem-reserved characters with underscores

@@ -9,6 +9,7 @@ import { Track } from './components/TrackCard'
 import { useTheme } from './hooks/useTheme'
 import { useFavorites } from './hooks/useFavorites'
 import { useSearch } from './hooks/useSearch'
+import { useSpotify } from './hooks/useSpotify'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { FavoritesPanel } from './components/FavoritesPanel'
 import { AboutModal } from './components/AboutModal'
@@ -20,6 +21,11 @@ export default function App() {
   const { theme, toggle } = useTheme()
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir } = useFavorites()
   const { results, loading: searchLoading, error: searchError, search: handleSearchBase } = useSearch()
+  useSpotify((trackName, artistName) => {
+    setView('home')
+    setSelectedTrack(null)
+    handleSearch(`${artistName} ${trackName}`.trim())
+  })
   const [favPanelOpen, setFavPanelOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)

@@ -10,6 +10,14 @@ export function CloseApp() {
   return window['go']['main']['App']['CloseApp']();
 }
 
+export function ConnectSpotify() {
+  return window['go']['main']['App']['ConnectSpotify']();
+}
+
+export function DisconnectSpotify() {
+  return window['go']['main']['App']['DisconnectSpotify']();
+}
+
 export function ExportLyrics(arg1, arg2, arg3) {
   return window['go']['main']['App']['ExportLyrics'](arg1, arg2, arg3);
 }
@@ -38,6 +46,10 @@ export function GetFavoritesDir() {
   return window['go']['main']['App']['GetFavoritesDir']();
 }
 
+export function GetSpotifyEnabled() {
+  return window['go']['main']['App']['GetSpotifyEnabled']();
+}
+
 export function GetVersion() {
   return window['go']['main']['App']['GetVersion']();
 }
@@ -64,6 +76,10 @@ export function SetCloseToTray(arg1) {
 
 export function SetDiscordPresence(arg1) {
   return window['go']['main']['App']['SetDiscordPresence'](arg1);
+}
+
+export function SetSpotifyEnabled(arg1) {
+  return window['go']['main']['App']['SetSpotifyEnabled'](arg1);
 }
 
 export function UpdatePresenceIdle() {

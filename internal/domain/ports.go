@@ -34,4 +34,16 @@ type FavoritesStore interface {
 	GetDiscordPresence() bool
 	// SetDiscordPresence persists the Discord Rich Presence preference.
 	SetDiscordPresence(ctx context.Context, enabled bool) error
+	// GetSpotifyEnabled returns the persisted Spotify integration preference.
+	GetSpotifyEnabled() bool
+	// SetSpotifyEnabled persists the Spotify integration preference.
+	SetSpotifyEnabled(ctx context.Context, enabled bool) error
+	// GetSpotifyAccessToken returns the persisted Spotify access token.
+	GetSpotifyAccessToken() string
+	// SetSpotifyAccessToken persists the Spotify access token.
+	SetSpotifyAccessToken(ctx context.Context, token string) error
+	// GetSpotifyRefreshToken returns the persisted Spotify refresh token.
+	GetSpotifyRefreshToken() string
+	// SetSpotifyRefreshToken persists the Spotify refresh token.
+	SetSpotifyRefreshToken(ctx context.Context, token string) error
 }

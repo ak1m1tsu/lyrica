@@ -6,6 +6,10 @@ export function AddFavorite(arg1:domain.Track):Promise<void>;
 
 export function CloseApp():Promise<void>;
 
+export function ConnectSpotify():Promise<void>;
+
+export function DisconnectSpotify():Promise<void>;
+
 export function ExportLyrics(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function GetAppIcon():Promise<string>;
@@ -20,6 +24,8 @@ export function GetFavorites():Promise<Array<domain.Track>>;
 
 export function GetFavoritesDir():Promise<string>;
 
+export function GetSpotifyEnabled():Promise<boolean>;
+
 export function GetVersion():Promise<string>;
 
 export function IsFavorite(arg1:number):Promise<boolean>;
@@ -33,6 +39,8 @@ export function Search(arg1:string):Promise<Array<domain.Track>>;
 export function SetCloseToTray(arg1:boolean):Promise<void>;
 
 export function SetDiscordPresence(arg1:boolean):Promise<void>;
+
+export function SetSpotifyEnabled(arg1:boolean):Promise<void>;
 
 export function UpdatePresenceIdle():Promise<void>;
 

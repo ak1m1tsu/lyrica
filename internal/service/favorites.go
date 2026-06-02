@@ -65,3 +65,33 @@ func (s *Favorites) DiscordPresence() bool {
 func (s *Favorites) SetDiscordPresence(ctx context.Context, enabled bool) error {
 	return s.store.SetDiscordPresence(ctx, enabled)
 }
+
+// SpotifyEnabled returns the persisted Spotify integration preference.
+func (s *Favorites) SpotifyEnabled() bool {
+	return s.store.GetSpotifyEnabled()
+}
+
+// SetSpotifyEnabled persists the Spotify integration preference.
+func (s *Favorites) SetSpotifyEnabled(ctx context.Context, enabled bool) error {
+	return s.store.SetSpotifyEnabled(ctx, enabled)
+}
+
+// SpotifyAccessToken returns the persisted Spotify access token.
+func (s *Favorites) SpotifyAccessToken() string {
+	return s.store.GetSpotifyAccessToken()
+}
+
+// SetSpotifyAccessToken persists the Spotify access token.
+func (s *Favorites) SetSpotifyAccessToken(ctx context.Context, token string) error {
+	return s.store.SetSpotifyAccessToken(ctx, token)
+}
+
+// SpotifyRefreshToken returns the persisted Spotify refresh token.
+func (s *Favorites) SpotifyRefreshToken() string {
+	return s.store.GetSpotifyRefreshToken()
+}
+
+// SetSpotifyRefreshToken persists the Spotify refresh token.
+func (s *Favorites) SetSpotifyRefreshToken(ctx context.Context, token string) error {
+	return s.store.SetSpotifyRefreshToken(ctx, token)
+}

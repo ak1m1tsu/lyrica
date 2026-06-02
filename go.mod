@@ -8,6 +8,8 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/hugolgst/rich-go v0.0.0-20240715122152-74618cc1ace2
 	github.com/wailsapp/wails/v2 v2.12.0
+	github.com/zmb3/spotify/v2 v2.4.3
+	golang.org/x/oauth2 v0.36.0
 	modernc.org/sqlite v1.51.0
 )
 

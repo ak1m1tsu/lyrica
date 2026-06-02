@@ -22,9 +22,12 @@ const (
 
 // config holds the persisted application settings.
 type config struct {
-	FavoritesDir   string `json:"favoritesDir"`
-	CloseToTray    bool   `json:"closeToTray"`
-	DiscordPresence bool  `json:"discordPresence"`
+	FavoritesDir        string `json:"favoritesDir"`
+	CloseToTray         bool   `json:"closeToTray"`
+	DiscordPresence     bool   `json:"discordPresence"`
+	SpotifyEnabled      bool   `json:"spotifyEnabled"`
+	SpotifyAccessToken  string `json:"spotifyAccessToken"`
+	SpotifyRefreshToken string `json:"spotifyRefreshToken"`
 }
 
 func defaultConfigDir() string {
@@ -340,5 +343,59 @@ func (s *SQLiteStore) SetDiscordPresence(ctx context.Context, enabled bool) erro
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.cfg.DiscordPresence = enabled
+	return s.saveConfig()
+}
+
+// GetSpotifyEnabled returns the persisted Spotify integration preference.
+func (s *SQLiteStore) GetSpotifyEnabled() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.SpotifyEnabled
+}
+
+// SetSpotifyEnabled persists the Spotify integration preference.
+func (s *SQLiteStore) SetSpotifyEnabled(ctx context.Context, enabled bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.SpotifyEnabled = enabled
+	return s.saveConfig()
+}
+
+// GetSpotifyAccessToken returns the persisted Spotify access token.
+func (s *SQLiteStore) GetSpotifyAccessToken() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.SpotifyAccessToken
+}
+
+// SetSpotifyAccessToken persists the Spotify access token.
+func (s *SQLiteStore) SetSpotifyAccessToken(ctx context.Context, token string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.SpotifyAccessToken = token
+	return s.saveConfig()
+}
+
+// GetSpotifyRefreshToken returns the persisted Spotify refresh token.
+func (s *SQLiteStore) GetSpotifyRefreshToken() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.SpotifyRefreshToken
+}
+
+// SetSpotifyRefreshToken persists the Spotify refresh token.
+func (s *SQLiteStore) SetSpotifyRefreshToken(ctx context.Context, token string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.SpotifyRefreshToken = token
 	return s.saveConfig()
 }
