@@ -1,8 +1,11 @@
+import { RefObject } from 'react'
+
 interface Props {
   onSearch: (query: string) => void
+  inputRef?: RefObject<HTMLInputElement>
 }
 
-export function SearchBar({ onSearch }: Props) {
+export function SearchBar({ onSearch, inputRef }: Props) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const query = (e.currentTarget.elements.namedItem('q') as HTMLInputElement).value
@@ -16,6 +19,7 @@ export function SearchBar({ onSearch }: Props) {
         name="q"
         aria-label="Search for a song"
         placeholder="Search for a song..."
+        ref={inputRef}
         className="flex-1 rounded-lg bg-[#0f1117]/5 dark:bg-white/5 px-4 py-3 text-[#0f1117] dark:text-white placeholder-[#0f1117]/40 dark:placeholder-white/30 outline-none ring-1 ring-[#0f1117]/20 dark:ring-white/10 focus:ring-[#9B84D1] dark:focus:ring-white/30 transition-all"
       />
       <button

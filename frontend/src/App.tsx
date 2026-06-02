@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { GetByID, UpdatePresenceIdle, UpdatePresenceSearching, UpdatePresenceTrack } from '../wailsjs/go/main/App'
 import { SearchBar } from './components/SearchBar'
 import { ResultsList } from './components/ResultsList'
@@ -9,6 +9,7 @@ import { Track } from './components/TrackCard'
 import { useTheme } from './hooks/useTheme'
 import { useFavorites } from './hooks/useFavorites'
 import { useSearch } from './hooks/useSearch'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { FavoritesPanel } from './components/FavoritesPanel'
 import { AboutModal } from './components/AboutModal'
 import { SettingsModal } from './components/SettingsModal'
@@ -26,6 +27,7 @@ export default function App() {
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
   const [lyricsLoading, setLyricsLoading] = useState(false)
   const [lyricsError, setLyricsError] = useState<string | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const handleSelect = async (track: Track) => {
     setLyricsLoading(true)
@@ -61,6 +63,19 @@ export default function App() {
     handleSearchBase(query)
   }
 
+  useKeyboardShortcuts({
+    view,
+    favPanelOpen,
+    aboutOpen,
+    settingsOpen,
+    searchInputRef,
+    onBack: handleBack,
+    onToggleFavPanel: () => setFavPanelOpen(o => !o),
+    onOpenSettings: () => setSettingsOpen(true),
+    onCloseSettings: () => setSettingsOpen(false),
+    onCloseAbout: () => setAboutOpen(false),
+  })
+
   return (
     <div className="flex h-screen flex-col dark:bg-[#0f1117] bg-white dark:text-white text-[#0f1117] overflow-hidden">
       <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={() => setSettingsOpen(true)} />
@@ -70,7 +85,7 @@ export default function App() {
             <button onClick={() => setView('home')} className="text-2xl font-bold tracking-tight hover:opacity-80 transition-opacity">
               Lyrica
             </button>
-            <SearchBar onSearch={handleSearch} />
+            <SearchBar onSearch={handleSearch} inputRef={searchInputRef} />
             {searchLoading && <ProgressBar />}
             {searchError && (
               <p className="text-sm text-red-400">{searchError}</p>
