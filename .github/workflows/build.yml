@@ -30,7 +30,7 @@ jobs:
         run: '"C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append'
 
       - name: Build
-        run: wails build -nsis
+        run: wails build -nsis -ldflags "-X main.googleClientID=${{ secrets.GOOGLE_CLIENT_ID }} -X main.googleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}"
 
       - uses: actions/upload-artifact@v7
         with:
@@ -54,7 +54,7 @@ jobs:
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
 
       - name: Build (universal binary)
-        run: wails build --platform darwin/universal
+        run: wails build --platform darwin/universal -ldflags "-X main.googleClientID=${{ secrets.GOOGLE_CLIENT_ID }} -X main.googleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}"
 
       - name: Zip app bundle
         run: cd build/bin && zip -r lyrica-macos.zip lyrica.app
