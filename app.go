@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/ak1m1tsu/lyrica/internal/domain"
@@ -560,19 +558,6 @@ func (a *App) DownloadAndInstall() error {
 	return nil
 }
 
-// launchInstallerAndQuit starts the NSIS installer in a new process group so
-// it survives the parent process exiting, then quits the app.
-func (a *App) launchInstallerAndQuit(installerPath string) error {
-	// No silent flag — the standard NSIS UI shows progress and UAC prompt,
-	// giving the user visibility and control during installation.
-	cmd := exec.Command(installerPath)
-	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP}
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to launch installer: %w", err)
-	}
-	runtime.Quit(a.ctx)
-	return nil
-}
 
 // sanitizeFilename replaces filesystem-reserved characters with underscores
 // and truncates the result to 100 characters.
