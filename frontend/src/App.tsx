@@ -11,6 +11,7 @@ import { useFavorites } from './hooks/useFavorites'
 import { useSearch } from './hooks/useSearch'
 import { useSpotify } from './hooks/useSpotify'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useUpdater } from './hooks/useUpdater'
 import { FavoritesPanel } from './components/FavoritesPanel'
 import { AboutModal } from './components/AboutModal'
 import { SettingsModal } from './components/SettingsModal'
@@ -19,6 +20,7 @@ type View = 'home' | 'lyrics'
 
 export default function App() {
   const { theme, toggle } = useTheme()
+  const { updateInfo, checking, downloading, progress, error: updateError, check: checkUpdate, install: installUpdate } = useUpdater()
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir } = useFavorites()
   const { results, loading: searchLoading, error: searchError, search: handleSearchBase } = useSearch()
   useSpotify((trackName, artistName) => {
@@ -84,7 +86,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col dark:bg-[#0f1117] bg-white dark:text-white text-[#0f1117] overflow-hidden">
-      <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={() => setSettingsOpen(true)} />
+      <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={() => setSettingsOpen(true)} hasUpdate={updateInfo?.available ?? false} />
       <div className="flex-1 overflow-y-auto">
         {view === 'home' && (
           <div className="flex flex-col items-center justify-start px-4 pt-16 gap-6">
@@ -123,7 +125,18 @@ export default function App() {
         onPickDir={pickDir}
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        hasUpdate={updateInfo?.available ?? false}
+        updateInfo={updateInfo}
+        checking={checking}
+        downloading={downloading}
+        downloadProgress={progress}
+        updateError={updateError}
+        onCheckUpdate={checkUpdate}
+        onInstallUpdate={installUpdate}
+      />
     </div>
   )
 }

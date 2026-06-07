@@ -83,6 +83,10 @@ jobs:
           name: lyrica-macos
           path: artifacts
 
+      - name: Generate SHA-256 checksum
+        run: |
+          sha256sum artifacts/lyrica-amd64-installer.exe | awk '{print $1 "  lyrica-amd64-installer.exe"}' > artifacts/lyrica-amd64-installer.exe.sha256
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:

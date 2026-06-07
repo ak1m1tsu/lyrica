@@ -29,3 +29,30 @@ export namespace domain {
 
 }
 
+export namespace main {
+	
+	export class UpdateResult {
+	    available: boolean;
+	    latestVersion: string;
+	    releaseNotes: string;
+	    downloadURL: string;
+	    installerName: string;
+	    assetSizeBytes: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.available = source["available"];
+	        this.latestVersion = source["latestVersion"];
+	        this.releaseNotes = source["releaseNotes"];
+	        this.downloadURL = source["downloadURL"];
+	        this.installerName = source["installerName"];
+	        this.assetSizeBytes = source["assetSizeBytes"];
+	    }
+	}
+
+}
+

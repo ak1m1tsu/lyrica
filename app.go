@@ -7,32 +7,57 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
+	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/ak1m1tsu/lyrica/internal/domain"
+	infragithub "github.com/ak1m1tsu/lyrica/internal/infrastructure/github"
 	"github.com/ak1m1tsu/lyrica/internal/service"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
-const appVersion = "3.3.0"
+const appVersion = "3.4.0"
+
+// UpdateResult is the JSON-serialisable payload returned to the frontend by
+// update-related RPC methods and emitted on the "update:available" event.
+type UpdateResult struct {
+	Available      bool   `json:"available"`
+	LatestVersion  string `json:"latestVersion"`
+	ReleaseNotes   string `json:"releaseNotes"`
+	DownloadURL    string `json:"downloadURL"`
+	InstallerName  string `json:"installerName"`
+	AssetSizeBytes int64  `json:"assetSizeBytes"`
+}
 
 // App is the Wails-bound adapter. It owns the Wails runtime context and
 // delegates all business logic to the injected services.
 type App struct {
-	ctx           context.Context
-	lyrics        *service.Lyrics
-	favorites     *service.Favorites
-	discord       *discordPresence
-	spotify       *spotifyService
-	windowVisible bool
+	ctx                context.Context
+	lyrics             *service.Lyrics
+	favorites          *service.Favorites
+	updater            *service.Updater
+	discord            *discordPresence
+	spotify            *spotifyService
+	windowVisible      bool
+	updateAvailable    atomic.Bool
+	cachedUpdate       atomic.Pointer[service.UpdateInfo]
+	downloadInProgress atomic.Bool
 }
 
 // NewApp wires the infrastructure into the services and returns the adapter.
-func NewApp(lyrics *service.Lyrics, favorites *service.Favorites) *App {
-	return &App{lyrics: lyrics, favorites: favorites, discord: newDiscordPresence(), spotify: newSpotifyService()}
+func NewApp(lyrics *service.Lyrics, favorites *service.Favorites, updater *service.Updater) *App {
+	return &App{
+		lyrics:    lyrics,
+		favorites: favorites,
+		updater:   updater,
+		discord:   newDiscordPresence(),
+		spotify:   newSpotifyService(),
+	}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -57,6 +82,24 @@ func (a *App) startup(ctx context.Context) {
 			a.spotify.startPolling(ctx, auth, tok, a.onSpotifyToken, a.onSpotifyTrack)
 		}
 	}
+	go func() {
+		ctx, cancel := context.WithTimeout(a.ctx, 30*time.Second)
+		defer cancel()
+		info, err := a.updater.CheckForUpdate(ctx)
+		if err != nil || !info.Available {
+			return
+		}
+		a.updateAvailable.Store(true)
+		a.cachedUpdate.Store(info)
+		runtime.EventsEmit(a.ctx, "update:available", UpdateResult{
+			Available:      true,
+			LatestVersion:  info.LatestVersion,
+			ReleaseNotes:   info.ReleaseNotes,
+			DownloadURL:    info.DownloadURL,
+			InstallerName:  info.InstallerName,
+			AssetSizeBytes: info.AssetSize,
+		})
+	}()
 	go a.runTray()
 }
 
@@ -321,6 +364,86 @@ func (a *App) DisconnectSpotify() error {
 		return err
 	}
 	return a.favorites.SetSpotifyRefreshToken(a.ctx, "")
+}
+
+// CheckForUpdates checks GitHub Releases for a newer version and returns the
+// result. It also caches the updateAvailable flag for GetUpdateAvailable.
+func (a *App) CheckForUpdates() (*UpdateResult, error) {
+	ctx, cancel := context.WithTimeout(a.ctx, 30*time.Second)
+	defer cancel()
+	info, err := a.updater.CheckForUpdate(ctx)
+	if err != nil {
+		return nil, errors.New("Failed to check for updates. Please try again.")
+	}
+	a.updateAvailable.Store(info.Available)
+	if info.Available {
+		a.cachedUpdate.Store(info)
+	}
+	return &UpdateResult{
+		Available:      info.Available,
+		LatestVersion:  info.LatestVersion,
+		ReleaseNotes:   info.ReleaseNotes,
+		DownloadURL:    info.DownloadURL,
+		InstallerName:  info.InstallerName,
+		AssetSizeBytes: info.AssetSize,
+	}, nil
+}
+
+// GetUpdateAvailable returns whether a newer version is known to exist based
+// on the most recent check (startup or manual).
+func (a *App) GetUpdateAvailable() bool {
+	return a.updateAvailable.Load()
+}
+
+// DownloadAndInstall downloads the latest installer and launches it, then
+// quits the app. It is guarded by an atomic flag to prevent concurrent calls.
+func (a *App) DownloadAndInstall() error {
+	if !a.downloadInProgress.CompareAndSwap(false, true) {
+		return errors.New("A download is already in progress.")
+	}
+	defer a.downloadInProgress.Store(false)
+
+	info := a.cachedUpdate.Load()
+	if info == nil || !info.Available {
+		return errors.New("No update available.")
+	}
+
+	dlCtx, dlCancel := context.WithTimeout(a.ctx, 10*time.Minute)
+	defer dlCancel()
+	var lastEmit time.Time
+	installerPath, err := infragithub.DownloadInstaller(dlCtx, info.DownloadURL, func(received, total int64) {
+		now := time.Now()
+		if now.Sub(lastEmit) < 250*time.Millisecond && !(total > 0 && received == total) {
+			return
+		}
+		lastEmit = now
+		runtime.EventsEmit(a.ctx, "update:progress", map[string]any{
+			"received": received,
+			"total":    total,
+		})
+	})
+	if err != nil {
+		return errors.New("Download failed. Please try again.")
+	}
+
+	if err := a.launchInstallerAndQuit(installerPath); err != nil {
+		return errors.New("Failed to launch installer. Please run it manually.")
+	}
+	return nil
+}
+
+// launchInstallerAndQuit starts the NSIS installer in a new process group so
+// it survives the parent process exiting, then quits the app.
+func (a *App) launchInstallerAndQuit(installerPath string) error {
+	// No silent flag — the standard NSIS UI shows progress and UAC prompt,
+	// giving the user visibility and control during installation.
+	cmd := exec.Command(installerPath)
+	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP}
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to launch installer: %w", err)
+	}
+	runtime.Quit(a.ctx)
+	return nil
 }
 
 // sanitizeFilename replaces filesystem-reserved characters with underscores

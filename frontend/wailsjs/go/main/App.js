@@ -6,6 +6,10 @@ export function AddFavorite(arg1) {
   return window['go']['main']['App']['AddFavorite'](arg1);
 }
 
+export function CheckForUpdates() {
+  return window['go']['main']['App']['CheckForUpdates']();
+}
+
 export function CloseApp() {
   return window['go']['main']['App']['CloseApp']();
 }
@@ -16,6 +20,10 @@ export function ConnectSpotify() {
 
 export function DisconnectSpotify() {
   return window['go']['main']['App']['DisconnectSpotify']();
+}
+
+export function DownloadAndInstall() {
+  return window['go']['main']['App']['DownloadAndInstall']();
 }
 
 export function ExportLyrics(arg1, arg2, arg3) {
@@ -48,6 +56,10 @@ export function GetFavoritesDir() {
 
 export function GetSpotifyEnabled() {
   return window['go']['main']['App']['GetSpotifyEnabled']();
+}
+
+export function GetUpdateAvailable() {
+  return window['go']['main']['App']['GetUpdateAvailable']();
 }
 
 export function GetVersion() {

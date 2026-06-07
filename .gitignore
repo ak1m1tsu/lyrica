@@ -1,5 +1,6 @@
 # Claude Code local state
 .claude/**
+.feature-dev/**
 
 # Compiled binaries
 bin/**

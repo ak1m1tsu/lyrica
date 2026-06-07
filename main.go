@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 
+	infragithub "github.com/ak1m1tsu/lyrica/internal/infrastructure/github"
 	infralrclib "github.com/ak1m1tsu/lyrica/internal/infrastructure/lrclib"
 	"github.com/ak1m1tsu/lyrica/internal/infrastructure/storage"
 	"github.com/ak1m1tsu/lyrica/internal/service"
@@ -36,7 +37,9 @@ func main() {
 	}()
 	lyrics := service.NewLyrics(infralrclib.NewCachingClient(infralrclib.New()))
 	favorites := service.NewFavorites(store)
-	app := NewApp(lyrics, favorites)
+	githubClient := infragithub.New()
+	updater := service.NewUpdater(appVersion, githubClient)
+	app := NewApp(lyrics, favorites, updater)
 	err = wails.Run(&options.App{
 		Title:             "Lyrica",
 		Width:             windowWidth,
