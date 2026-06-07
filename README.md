@@ -9,6 +9,11 @@ A desktop application that searches and displays synchronized and plain-text lyr
 - Favorites — persist and manage saved tracks
 - Export lyrics as `.lrc` or `.txt` via native save dialog
 - Dark / light theme toggle
+- Minimize to system tray
+- Discord Rich Presence — shows the track you're currently viewing
+- Spotify integration — detects the playing track and auto-fills the search
+- Google Drive sync — back up and sync your favorites across devices
+- Auto-update — checks for new releases on startup and downloads the installer
 
 ## Download
 
