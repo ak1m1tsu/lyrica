@@ -25,9 +25,13 @@ type config struct {
 	FavoritesDir        string `json:"favoritesDir"`
 	CloseToTray         bool   `json:"closeToTray"`
 	DiscordPresence     bool   `json:"discordPresence"`
-	SpotifyEnabled      bool   `json:"spotifyEnabled"`
-	SpotifyAccessToken  string `json:"spotifyAccessToken"`
-	SpotifyRefreshToken string `json:"spotifyRefreshToken"`
+	SpotifyEnabled       bool   `json:"spotifyEnabled"`
+	SpotifyAccessToken   string `json:"spotifyAccessToken"`
+	SpotifyRefreshToken  string `json:"spotifyRefreshToken"`
+	GoogleDriveEnabled   bool   `json:"googleDriveEnabled"`
+	GoogleAccessToken    string `json:"googleAccessToken"`
+	GoogleRefreshToken   string `json:"googleRefreshToken"`
+	LastSyncAt           string `json:"lastSyncAt"`
 }
 
 func defaultConfigDir() string {
@@ -397,5 +401,77 @@ func (s *SQLiteStore) SetSpotifyRefreshToken(ctx context.Context, token string) 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.cfg.SpotifyRefreshToken = token
+	return s.saveConfig()
+}
+
+// GoogleDriveEnabled returns whether Google Drive sync is enabled.
+func (s *SQLiteStore) GoogleDriveEnabled() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.GoogleDriveEnabled
+}
+
+// SetGoogleDriveEnabled persists the Google Drive sync preference.
+func (s *SQLiteStore) SetGoogleDriveEnabled(ctx context.Context, enabled bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.GoogleDriveEnabled = enabled
+	return s.saveConfig()
+}
+
+// GetGoogleAccessToken returns the persisted Google OAuth access token.
+func (s *SQLiteStore) GetGoogleAccessToken() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.GoogleAccessToken
+}
+
+// SetGoogleAccessToken persists the Google OAuth access token.
+func (s *SQLiteStore) SetGoogleAccessToken(ctx context.Context, token string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.GoogleAccessToken = token
+	return s.saveConfig()
+}
+
+// GetGoogleRefreshToken returns the persisted Google OAuth refresh token.
+func (s *SQLiteStore) GetGoogleRefreshToken() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.GoogleRefreshToken
+}
+
+// SetGoogleRefreshToken persists the Google OAuth refresh token.
+func (s *SQLiteStore) SetGoogleRefreshToken(ctx context.Context, token string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.GoogleRefreshToken = token
+	return s.saveConfig()
+}
+
+// GetLastSyncAt returns the RFC3339 timestamp of the last successful sync.
+func (s *SQLiteStore) GetLastSyncAt() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.LastSyncAt
+}
+
+// SetLastSyncAt persists the last successful sync timestamp.
+func (s *SQLiteStore) SetLastSyncAt(ctx context.Context, t string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.LastSyncAt = t
 	return s.saveConfig()
 }

@@ -9,7 +9,11 @@ export function CheckForUpdates():Promise<main.UpdateResult>;
 
 export function CloseApp():Promise<void>;
 
+export function ConnectGoogleDrive():Promise<void>;
+
 export function ConnectSpotify():Promise<void>;
+
+export function DisconnectGoogleDrive():Promise<void>;
 
 export function DisconnectSpotify():Promise<void>;
 
@@ -28,6 +32,10 @@ export function GetDiscordPresence():Promise<boolean>;
 export function GetFavorites():Promise<Array<domain.Track>>;
 
 export function GetFavoritesDir():Promise<string>;
+
+export function GetGoogleDriveEnabled():Promise<boolean>;
+
+export function GetLastSyncTime():Promise<string>;
 
 export function GetSpotifyEnabled():Promise<boolean>;
 
@@ -48,6 +56,10 @@ export function SetCloseToTray(arg1:boolean):Promise<void>;
 export function SetDiscordPresence(arg1:boolean):Promise<void>;
 
 export function SetSpotifyEnabled(arg1:boolean):Promise<void>;
+
+export function SyncFromGoogleDrive():Promise<void>;
+
+export function SyncToGoogleDrive():Promise<void>;
 
 export function UpdatePresenceIdle():Promise<void>;
 

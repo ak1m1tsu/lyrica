@@ -3,6 +3,7 @@ import { GetByID, UpdatePresenceIdle, UpdatePresenceSearching, UpdatePresenceTra
 import { SearchBar } from './components/SearchBar'
 import { ResultsList } from './components/ResultsList'
 import { LyricsView } from './components/LyricsView'
+import { SettingsView } from './components/SettingsView'
 import { ProgressBar } from './components/ProgressBar'
 import { TitleBar } from './components/TitleBar'
 import { Track } from './components/TrackCard'
@@ -12,16 +13,17 @@ import { useSearch } from './hooks/useSearch'
 import { useSpotify } from './hooks/useSpotify'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useUpdater } from './hooks/useUpdater'
+import { useGoogleDriveSync } from './hooks/useGoogleDriveSync'
 import { FavoritesPanel } from './components/FavoritesPanel'
 import { AboutModal } from './components/AboutModal'
-import { SettingsModal } from './components/SettingsModal'
 
-type View = 'home' | 'lyrics'
+type View = 'home' | 'lyrics' | 'settings'
 
 export default function App() {
   const { theme, toggle } = useTheme()
   const { updateInfo, checking, downloading, progress, error: updateError, check: checkUpdate, install: installUpdate } = useUpdater()
-  const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir } = useFavorites()
+  const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir, reload: reloadFavorites } = useFavorites()
+  const googleDriveSync = useGoogleDriveSync(reloadFavorites)
   const { results, loading: searchLoading, error: searchError, search: handleSearchBase } = useSearch()
   useSpotify((trackName, artistName) => {
     setView('home')
@@ -30,12 +32,12 @@ export default function App() {
   })
   const [favPanelOpen, setFavPanelOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const [view, setView] = useState<View>('home')
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
   const [lyricsLoading, setLyricsLoading] = useState(false)
   const [lyricsError, setLyricsError] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const previousViewRef = useRef<'home' | 'lyrics'>('home')
 
   const handleSelect = async (track: Track) => {
     setLyricsLoading(true)
@@ -55,11 +57,30 @@ export default function App() {
     }
   }
 
-  const handleBack = () => {
+  const handleBackFromLyrics = () => {
     setView('home')
     setSelectedTrack(null)
     setLyricsError(null)
     UpdatePresenceIdle()
+  }
+
+  const handleOpenSettings = () => {
+    if (view !== 'settings') {
+      previousViewRef.current = view as 'home' | 'lyrics'
+    }
+    setView('settings')
+  }
+
+  const handleBackFromSettings = () => {
+    setView(previousViewRef.current)
+  }
+
+  const handleBack = () => {
+    if (view === 'settings') {
+      handleBackFromSettings()
+    } else {
+      handleBackFromLyrics()
+    }
   }
 
   const handleSearch = (query: string) => {
@@ -75,18 +96,16 @@ export default function App() {
     view,
     favPanelOpen,
     aboutOpen,
-    settingsOpen,
     searchInputRef,
     onBack: handleBack,
     onToggleFavPanel: () => setFavPanelOpen(o => !o),
-    onOpenSettings: () => setSettingsOpen(true),
-    onCloseSettings: () => setSettingsOpen(false),
+    onOpenSettings: handleOpenSettings,
     onCloseAbout: () => setAboutOpen(false),
   })
 
   return (
     <div className="flex h-screen flex-col dark:bg-[#0f1117] bg-white dark:text-white text-[#0f1117] overflow-hidden">
-      <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={() => setSettingsOpen(true)} hasUpdate={updateInfo?.available ?? false} />
+      <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={handleOpenSettings} hasUpdate={updateInfo?.available ?? false} />
       <div className="flex-1 overflow-y-auto">
         {view === 'home' && (
           <div className="flex flex-col items-center justify-start px-4 pt-16 gap-6">
@@ -107,11 +126,26 @@ export default function App() {
         {view === 'lyrics' && selectedTrack && (
           <LyricsView
             track={selectedTrack}
-            onBack={handleBack}
+            onBack={handleBackFromLyrics}
             error={lyricsError}
             loading={lyricsLoading}
             isFavorite={isFavorite(selectedTrack.id)}
             onToggleFavorite={() => toggleFavorite(selectedTrack)}
+          />
+        )}
+
+        {view === 'settings' && (
+          <SettingsView
+            onBack={handleBackFromSettings}
+            hasUpdate={updateInfo?.available ?? false}
+            updateInfo={updateInfo}
+            checking={checking}
+            downloading={downloading}
+            downloadProgress={progress}
+            updateError={updateError}
+            onCheckUpdate={checkUpdate}
+            onInstallUpdate={installUpdate}
+            googleDrive={googleDriveSync}
           />
         )}
       </div>
@@ -125,18 +159,6 @@ export default function App() {
         onPickDir={pickDir}
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
-      <SettingsModal
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        hasUpdate={updateInfo?.available ?? false}
-        updateInfo={updateInfo}
-        checking={checking}
-        downloading={downloading}
-        downloadProgress={progress}
-        updateError={updateError}
-        onCheckUpdate={checkUpdate}
-        onInstallUpdate={installUpdate}
-      />
     </div>
   )
 }

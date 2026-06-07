@@ -1,15 +1,13 @@
 import { RefObject, useEffect, useRef } from 'react'
 
 export interface KeyboardShortcutsOptions {
-  view: 'home' | 'lyrics'
+  view: 'home' | 'lyrics' | 'settings'
   favPanelOpen: boolean
   aboutOpen: boolean
-  settingsOpen: boolean
   searchInputRef: RefObject<HTMLInputElement>
   onBack: () => void
   onToggleFavPanel: () => void
   onOpenSettings: () => void
-  onCloseSettings: () => void
   onCloseAbout: () => void
 }
 
@@ -27,13 +25,10 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions): void {
         if (opts.aboutOpen) {
           opts.onCloseAbout()
           e.preventDefault()
-        } else if (opts.settingsOpen) {
-          opts.onCloseSettings()
-          e.preventDefault()
         } else if (opts.favPanelOpen) {
           opts.onToggleFavPanel()
           e.preventDefault()
-        } else if (opts.view === 'lyrics') {
+        } else if (opts.view === 'lyrics' || opts.view === 'settings') {
           opts.onBack()
           e.preventDefault()
         }
@@ -56,8 +51,10 @@ export function useKeyboardShortcuts(options: KeyboardShortcutsOptions): void {
       }
 
       if ((e.ctrlKey || e.metaKey) && e.key === ',') {
-        opts.onOpenSettings()
-        e.preventDefault()
+        if (opts.view !== 'settings') {
+          opts.onOpenSettings()
+          e.preventDefault()
+        }
         return
       }
 

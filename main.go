@@ -6,6 +6,7 @@ import (
 	"os"
 
 	infragithub "github.com/ak1m1tsu/lyrica/internal/infrastructure/github"
+	infragdrive "github.com/ak1m1tsu/lyrica/internal/infrastructure/googledrive"
 	infralrclib "github.com/ak1m1tsu/lyrica/internal/infrastructure/lrclib"
 	"github.com/ak1m1tsu/lyrica/internal/infrastructure/storage"
 	"github.com/ak1m1tsu/lyrica/internal/service"
@@ -24,6 +25,14 @@ const (
 	windowMinHeight = 500
 )
 
+// googleClientID and googleClientSecret are injected at build time via ldflags:
+//
+//	wails build -ldflags "-X main.googleClientID=<id> -X main.googleClientSecret=<secret>"
+var (
+	googleClientID     string
+	googleClientSecret string
+)
+
 func main() {
 	store, err := storage.NewSQLiteStore("")
 	if err != nil {
@@ -39,7 +48,9 @@ func main() {
 	favorites := service.NewFavorites(store)
 	githubClient := infragithub.New()
 	updater := service.NewUpdater(appVersion, githubClient)
-	app := NewApp(lyrics, favorites, updater)
+	gdriveClient := infragdrive.New(googleClientID, googleClientSecret)
+	syncService := service.NewSync(store, gdriveClient)
+	app := NewApp(lyrics, favorites, updater, gdriveClient, syncService)
 	err = wails.Run(&options.App{
 		Title:             "Lyrica",
 		Width:             windowWidth,

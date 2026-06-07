@@ -95,3 +95,43 @@ func (s *Favorites) SpotifyRefreshToken() string {
 func (s *Favorites) SetSpotifyRefreshToken(ctx context.Context, token string) error {
 	return s.store.SetSpotifyRefreshToken(ctx, token)
 }
+
+// GoogleDriveEnabled returns whether Google Drive sync is enabled.
+func (s *Favorites) GoogleDriveEnabled() bool {
+	return s.store.GoogleDriveEnabled()
+}
+
+// SetGoogleDriveEnabled persists the Google Drive sync preference.
+func (s *Favorites) SetGoogleDriveEnabled(ctx context.Context, enabled bool) error {
+	return s.store.SetGoogleDriveEnabled(ctx, enabled)
+}
+
+// GoogleAccessToken returns the persisted Google OAuth access token.
+func (s *Favorites) GoogleAccessToken() string {
+	return s.store.GetGoogleAccessToken()
+}
+
+// SetGoogleAccessToken persists the Google OAuth access token.
+func (s *Favorites) SetGoogleAccessToken(ctx context.Context, token string) error {
+	return s.store.SetGoogleAccessToken(ctx, token)
+}
+
+// GoogleRefreshToken returns the persisted Google OAuth refresh token.
+func (s *Favorites) GoogleRefreshToken() string {
+	return s.store.GetGoogleRefreshToken()
+}
+
+// SetGoogleRefreshToken persists the Google OAuth refresh token.
+func (s *Favorites) SetGoogleRefreshToken(ctx context.Context, token string) error {
+	return s.store.SetGoogleRefreshToken(ctx, token)
+}
+
+// LastSyncAt returns the RFC3339 timestamp of the last successful sync.
+func (s *Favorites) LastSyncAt() string {
+	return s.store.GetLastSyncAt()
+}
+
+// SetLastSyncAt persists the last successful sync timestamp.
+func (s *Favorites) SetLastSyncAt(ctx context.Context, t string) error {
+	return s.store.SetLastSyncAt(ctx, t)
+}

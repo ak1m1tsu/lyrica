@@ -46,4 +46,20 @@ type FavoritesStore interface {
 	GetSpotifyRefreshToken() string
 	// SetSpotifyRefreshToken persists the Spotify refresh token.
 	SetSpotifyRefreshToken(ctx context.Context, token string) error
+	// GoogleDriveEnabled returns whether Google Drive sync is enabled.
+	GoogleDriveEnabled() bool
+	// SetGoogleDriveEnabled persists the Google Drive sync preference.
+	SetGoogleDriveEnabled(ctx context.Context, enabled bool) error
+	// GetGoogleAccessToken returns the persisted Google OAuth access token.
+	GetGoogleAccessToken() string
+	// SetGoogleAccessToken persists the Google OAuth access token.
+	SetGoogleAccessToken(ctx context.Context, token string) error
+	// GetGoogleRefreshToken returns the persisted Google OAuth refresh token.
+	GetGoogleRefreshToken() string
+	// SetGoogleRefreshToken persists the Google OAuth refresh token.
+	SetGoogleRefreshToken(ctx context.Context, token string) error
+	// GetLastSyncAt returns the RFC3339 timestamp of the last successful sync.
+	GetLastSyncAt() string
+	// SetLastSyncAt persists the last successful sync timestamp.
+	SetLastSyncAt(ctx context.Context, t string) error
 }

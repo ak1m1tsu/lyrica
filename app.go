@@ -15,13 +15,14 @@ import (
 
 	"github.com/ak1m1tsu/lyrica/internal/domain"
 	infragithub "github.com/ak1m1tsu/lyrica/internal/infrastructure/github"
+	infragdrive "github.com/ak1m1tsu/lyrica/internal/infrastructure/googledrive"
 	"github.com/ak1m1tsu/lyrica/internal/service"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
-const appVersion = "3.4.0"
+const appVersion = "3.6.0"
 
 // UpdateResult is the JSON-serialisable payload returned to the frontend by
 // update-related RPC methods and emitted on the "update:available" event.
@@ -43,6 +44,8 @@ type App struct {
 	updater            *service.Updater
 	discord            *discordPresence
 	spotify            *spotifyService
+	gdrive             *infragdrive.Client
+	sync               *service.Sync
 	windowVisible      bool
 	updateAvailable    atomic.Bool
 	cachedUpdate       atomic.Pointer[service.UpdateInfo]
@@ -50,13 +53,15 @@ type App struct {
 }
 
 // NewApp wires the infrastructure into the services and returns the adapter.
-func NewApp(lyrics *service.Lyrics, favorites *service.Favorites, updater *service.Updater) *App {
+func NewApp(lyrics *service.Lyrics, favorites *service.Favorites, updater *service.Updater, gdrive *infragdrive.Client, sync *service.Sync) *App {
 	return &App{
 		lyrics:    lyrics,
 		favorites: favorites,
 		updater:   updater,
 		discord:   newDiscordPresence(),
 		spotify:   newSpotifyService(),
+		gdrive:    gdrive,
+		sync:      sync,
 	}
 }
 
@@ -364,6 +369,129 @@ func (a *App) DisconnectSpotify() error {
 		return err
 	}
 	return a.favorites.SetSpotifyRefreshToken(a.ctx, "")
+}
+
+// GetGoogleDriveEnabled returns whether Google Drive sync is enabled.
+func (a *App) GetGoogleDriveEnabled() bool {
+	return a.favorites.GoogleDriveEnabled()
+}
+
+// GetLastSyncTime returns the RFC3339 timestamp of the last successful sync.
+func (a *App) GetLastSyncTime() string {
+	return a.favorites.LastSyncAt()
+}
+
+// ConnectGoogleDrive runs the OAuth2 PKCE flow on a local HTTP server, persists
+// the tokens, and enables Google Drive sync.
+func (a *App) ConnectGoogleDrive() error {
+	if !a.gdrive.Configured() {
+		return errors.New("Google Drive credentials are not configured.")
+	}
+	verifier := oauth2.GenerateVerifier()
+	state := "lyrica-gdrive"
+	authURL := a.gdrive.AuthURL(state, verifier)
+
+	codeCh := make(chan string, 1)
+	errCh := make(chan error, 1)
+	mux := http.NewServeMux()
+	srv := &http.Server{Addr: ":27183", Handler: mux}
+	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("state") != state {
+			select {
+			case errCh <- errors.New("state mismatch"):
+			default:
+			}
+			http.Error(w, "state mismatch", http.StatusBadRequest)
+			return
+		}
+		code := r.URL.Query().Get("code")
+		if code == "" {
+			select {
+			case errCh <- errors.New("no code in callback"):
+			default:
+			}
+			http.Error(w, "missing code", http.StatusBadRequest)
+			return
+		}
+		select {
+		case codeCh <- code:
+		default:
+		}
+		w.Header().Set("Content-Type", "text/html")
+		fmt.Fprint(w, "<html><body><h2>Lyrica connected to Google Drive!</h2><p>You can close this tab.</p></body></html>")
+	})
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			select {
+			case errCh <- err:
+			default:
+			}
+		}
+	}()
+	runtime.BrowserOpenURL(a.ctx, authURL)
+
+	ctx, cancel := context.WithTimeout(a.ctx, 120*time.Second)
+	defer cancel()
+	defer srv.Shutdown(context.Background()) //nolint:errcheck
+
+	select {
+	case code := <-codeCh:
+		token, err := a.gdrive.Exchange(ctx, code, verifier)
+		if err != nil {
+			return fmt.Errorf("Google Drive authorization failed: %w", err)
+		}
+		if err := a.favorites.SetGoogleAccessToken(a.ctx, token.AccessToken); err != nil {
+			return err
+		}
+		if err := a.favorites.SetGoogleRefreshToken(a.ctx, token.RefreshToken); err != nil {
+			return err
+		}
+		return a.favorites.SetGoogleDriveEnabled(a.ctx, true)
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+		return errors.New("Google Drive authorization timed out. Please try again.")
+	}
+}
+
+// DisconnectGoogleDrive clears the persisted Google Drive credentials and
+// disables sync.
+func (a *App) DisconnectGoogleDrive() error {
+	if err := a.favorites.SetGoogleDriveEnabled(a.ctx, false); err != nil {
+		return err
+	}
+	if err := a.favorites.SetGoogleAccessToken(a.ctx, ""); err != nil {
+		return err
+	}
+	if err := a.favorites.SetGoogleRefreshToken(a.ctx, ""); err != nil {
+		return err
+	}
+	return a.favorites.SetLastSyncAt(a.ctx, "")
+}
+
+// SyncToGoogleDrive uploads the local favorites list to Google Drive.
+func (a *App) SyncToGoogleDrive() error {
+	if err := a.sync.Push(a.ctx); err != nil {
+		if infragdrive.IsAuthError(err) {
+			return errors.New("token_expired")
+		}
+		return fmt.Errorf("Upload failed: %w", err)
+	}
+	runtime.EventsEmit(a.ctx, "gdrive:synced", a.favorites.LastSyncAt())
+	return nil
+}
+
+// SyncFromGoogleDrive downloads favorites from Google Drive and merges them
+// into the local store, emitting "gdrive:synced" on success.
+func (a *App) SyncFromGoogleDrive() error {
+	if _, err := a.sync.Pull(a.ctx); err != nil {
+		if infragdrive.IsAuthError(err) {
+			return errors.New("token_expired")
+		}
+		return fmt.Errorf("Download failed: %w", err)
+	}
+	runtime.EventsEmit(a.ctx, "gdrive:synced", a.favorites.LastSyncAt())
+	return nil
 }
 
 // CheckForUpdates checks GitHub Releases for a newer version and returns the

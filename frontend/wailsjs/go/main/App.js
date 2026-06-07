@@ -14,8 +14,16 @@ export function CloseApp() {
   return window['go']['main']['App']['CloseApp']();
 }
 
+export function ConnectGoogleDrive() {
+  return window['go']['main']['App']['ConnectGoogleDrive']();
+}
+
 export function ConnectSpotify() {
   return window['go']['main']['App']['ConnectSpotify']();
+}
+
+export function DisconnectGoogleDrive() {
+  return window['go']['main']['App']['DisconnectGoogleDrive']();
 }
 
 export function DisconnectSpotify() {
@@ -52,6 +60,14 @@ export function GetFavorites() {
 
 export function GetFavoritesDir() {
   return window['go']['main']['App']['GetFavoritesDir']();
+}
+
+export function GetGoogleDriveEnabled() {
+  return window['go']['main']['App']['GetGoogleDriveEnabled']();
+}
+
+export function GetLastSyncTime() {
+  return window['go']['main']['App']['GetLastSyncTime']();
 }
 
 export function GetSpotifyEnabled() {
@@ -92,6 +108,14 @@ export function SetDiscordPresence(arg1) {
 
 export function SetSpotifyEnabled(arg1) {
   return window['go']['main']['App']['SetSpotifyEnabled'](arg1);
+}
+
+export function SyncFromGoogleDrive() {
+  return window['go']['main']['App']['SyncFromGoogleDrive']();
+}
+
+export function SyncToGoogleDrive() {
+  return window['go']['main']['App']['SyncToGoogleDrive']();
 }
 
 export function UpdatePresenceIdle() {
