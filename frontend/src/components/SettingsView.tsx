@@ -299,11 +299,6 @@ export function SettingsView({
                     <p className="text-sm text-[var(--color-text-80)]">
                       Lyrica <span className="font-semibold text-[var(--color-accent-on-bg)]">v{updateInfo.latestVersion}</span> is available
                     </p>
-                    {updateInfo.releaseNotes && (
-                      <pre className="text-xs text-[var(--color-text-50)] whitespace-pre-wrap overflow-y-auto max-h-28 rounded bg-[var(--color-card-05)] p-2">
-                        {updateInfo.releaseNotes}
-                      </pre>
-                    )}
                     <button onClick={onInstallUpdate} className="w-full rounded-md py-1.5 text-sm text-white bg-gradient-to-r from-[var(--color-accent-lt)] to-[var(--color-accent)] hover:opacity-90 transition-opacity">
                       Download &amp; Install
                     </button>

@@ -22,7 +22,6 @@ var trustedDownloadHosts = map[string]bool{
 type UpdateInfo struct {
 	Available     bool
 	LatestVersion string
-	ReleaseNotes  string
 	DownloadURL   string
 	InstallerName string
 	AssetSize     int64
@@ -81,16 +80,9 @@ func (u *Updater) CheckForUpdate(ctx context.Context) (*UpdateInfo, error) {
 		return nil, fmt.Errorf("release asset URL rejected: %w", err)
 	}
 
-	const maxNotesLen = 4096
-	notes := release.Body
-	if len(notes) > maxNotesLen {
-		notes = notes[:maxNotesLen] + "…"
-	}
-
 	return &UpdateInfo{
 		Available:     true,
 		LatestVersion: latestVersion,
-		ReleaseNotes:  notes,
 		DownloadURL:   asset.BrowserDownloadURL,
 		InstallerName: filepath.Base(asset.Name),
 		AssetSize:     asset.Size,

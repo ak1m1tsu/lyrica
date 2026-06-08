@@ -105,9 +105,6 @@ func TestCheckForUpdate_UpdateAvailable_WithWindowsAsset(t *testing.T) {
 	if info.LatestVersion != "3.4.0" {
 		t.Errorf("LatestVersion: got %q, want %q", info.LatestVersion, "3.4.0")
 	}
-	if info.ReleaseNotes != "Release notes for 3.4.0" {
-		t.Errorf("ReleaseNotes: got %q", info.ReleaseNotes)
-	}
 	if info.DownloadURL == "" {
 		t.Error("DownloadURL must not be empty")
 	}

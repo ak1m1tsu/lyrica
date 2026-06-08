@@ -2,16 +2,22 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
 	"syscall"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"golang.org/x/sys/windows"
 )
 
 func (a *App) launchInstallerAndQuit(installerPath string) error {
-	cmd := exec.Command(installerPath)
-	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP}
-	if err := cmd.Start(); err != nil {
+	verbPtr, err := syscall.UTF16PtrFromString("runas")
+	if err != nil {
+		return fmt.Errorf("failed to launch installer: %w", err)
+	}
+	pathPtr, err := syscall.UTF16PtrFromString(installerPath)
+	if err != nil {
+		return fmt.Errorf("failed to launch installer: %w", err)
+	}
+	if err := windows.ShellExecute(0, verbPtr, pathPtr, nil, nil, windows.SW_SHOWNORMAL); err != nil {
 		return fmt.Errorf("failed to launch installer: %w", err)
 	}
 	runtime.Quit(a.ctx)

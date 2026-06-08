@@ -265,11 +265,6 @@ export function SettingsModal({
                     <p className="text-sm dark:text-white/80 text-[#0f1117]/80">
                       Lyrica <span className="font-semibold text-[#9B84D1]">v{updateInfo.latestVersion}</span> is available
                     </p>
-                    {updateInfo.releaseNotes && (
-                      <pre className="text-xs dark:text-white/50 text-[#0f1117]/50 whitespace-pre-wrap overflow-y-auto max-h-28 rounded dark:bg-white/5 bg-[#0f1117]/5 p-2">
-                        {updateInfo.releaseNotes}
-                      </pre>
-                    )}
                     <button
                       onClick={onInstallUpdate}
                       className="w-full rounded-md py-1.5 text-sm text-white bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1] hover:opacity-90 transition-opacity"

@@ -21,14 +21,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const appVersion = "3.7.0"
+const appVersion = "3.7.1"
 
 // UpdateResult is the JSON-serialisable payload returned to the frontend by
 // update-related RPC methods and emitted on the "update:available" event.
 type UpdateResult struct {
 	Available      bool   `json:"available"`
 	LatestVersion  string `json:"latestVersion"`
-	ReleaseNotes   string `json:"releaseNotes"`
 	DownloadURL    string `json:"downloadURL"`
 	InstallerName  string `json:"installerName"`
 	AssetSizeBytes int64  `json:"assetSizeBytes"`
@@ -98,7 +97,6 @@ func (a *App) startup(ctx context.Context) {
 		runtime.EventsEmit(a.ctx, "update:available", UpdateResult{
 			Available:      true,
 			LatestVersion:  info.LatestVersion,
-			ReleaseNotes:   info.ReleaseNotes,
 			DownloadURL:    info.DownloadURL,
 			InstallerName:  info.InstallerName,
 			AssetSizeBytes: info.AssetSize,
@@ -620,7 +618,6 @@ func (a *App) CheckForUpdates() (*UpdateResult, error) {
 	return &UpdateResult{
 		Available:      info.Available,
 		LatestVersion:  info.LatestVersion,
-		ReleaseNotes:   info.ReleaseNotes,
 		DownloadURL:    info.DownloadURL,
 		InstallerName:  info.InstallerName,
 		AssetSizeBytes: info.AssetSize,
