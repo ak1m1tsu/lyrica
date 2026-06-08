@@ -135,3 +135,33 @@ func (s *Favorites) LastSyncAt() string {
 func (s *Favorites) SetLastSyncAt(ctx context.Context, t string) error {
 	return s.store.SetLastSyncAt(ctx, t)
 }
+
+// CurrentTheme returns the ID of the currently active theme.
+func (s *Favorites) CurrentTheme() string {
+	return s.store.GetCurrentTheme()
+}
+
+// SetCurrentTheme persists the active theme ID.
+func (s *Favorites) SetCurrentTheme(ctx context.Context, id string) error {
+	return s.store.SetCurrentTheme(ctx, id)
+}
+
+// ThemesDir returns the directory where custom theme JSON files are stored.
+func (s *Favorites) ThemesDir() string {
+	return s.store.GetThemesDir()
+}
+
+// CustomThemes returns all custom themes from the themes directory.
+func (s *Favorites) CustomThemes() ([]domain.Theme, error) {
+	return s.store.GetCustomThemes()
+}
+
+// SaveCustomTheme writes a theme to the themes directory.
+func (s *Favorites) SaveCustomTheme(theme domain.Theme) error {
+	return s.store.SaveCustomTheme(theme)
+}
+
+// DeleteCustomTheme removes a custom theme by ID from the themes directory.
+func (s *Favorites) DeleteCustomTheme(id string) error {
+	return s.store.DeleteCustomTheme(id)
+}

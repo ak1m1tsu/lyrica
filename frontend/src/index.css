@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fallback CSS variables matching the dark theme — applied before JS runs */
+:root {
+  --color-bg: #0f1117;
+  --color-surface: #161920;
+  --color-text: #ffffff;
+  --color-text-90: rgba(255, 255, 255, 0.9);
+  --color-text-80: rgba(255, 255, 255, 0.8);
+  --color-text-70: rgba(255, 255, 255, 0.7);
+  --color-text-60: rgba(255, 255, 255, 0.6);
+  --color-text-50: rgba(255, 255, 255, 0.5);
+  --color-text-40: rgba(255, 255, 255, 0.4);
+  --color-text-30: rgba(255, 255, 255, 0.3);
+  --color-card-20: rgba(255, 255, 255, 0.2);
+  --color-card-10: rgba(255, 255, 255, 0.1);
+  --color-card-05: rgba(255, 255, 255, 0.05);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-accent: #9B84D1;
+  --color-accent-hover: #8870be;
+  --color-accent-lt: #C8B1F3;
+  --color-accent-lt-hover: #d5c4f6;
+  --color-accent-20: rgba(155, 132, 209, 0.2);
+  --color-accent-10: rgba(155, 132, 209, 0.1);
+  --color-accent-on-bg: #C8B1F3;
+  --color-accent-on-bg-hover: #d5c4f6;
+  --color-scroll-thumb: #9B84D1;
+  --color-scroll-thumb-hover: #C8B1F3;
+}
+
 .lyrics-scroll::-webkit-scrollbar {
   width: 4px;
 }
@@ -11,18 +39,10 @@
 }
 
 .lyrics-scroll::-webkit-scrollbar-thumb {
-  background: #9B84D1;
+  background: var(--color-scroll-thumb);
   border-radius: 9999px;
 }
 
 .lyrics-scroll::-webkit-scrollbar-thumb:hover {
-  background: #C8B1F3;
-}
-
-.dark .lyrics-scroll::-webkit-scrollbar-thumb {
-  background: #9B84D1;
-}
-
-.dark .lyrics-scroll::-webkit-scrollbar-thumb:hover {
-  background: #C8B1F3;
+  background: var(--color-scroll-thumb-hover);
 }

@@ -17,11 +17,11 @@ export function FavoriteButton({ isFavorite, onToggle, size = 'md' }: Props) {
       onClick={handleClick}
       aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
       aria-pressed={isFavorite}
-      className={`flex items-center justify-center rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9B84D1]
+      className={`flex items-center justify-center rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]
         ${size === 'sm' ? 'h-6 w-6' : 'h-8 w-8'}
         ${isFavorite
-          ? 'text-[#C8B1F3] hover:text-[#D4C0F5] dark:text-[#C8B1F3] dark:hover:text-[#D4C0F5]'
-          : 'text-[#0f1117]/40 dark:text-white/40 hover:text-[#9B84D1] dark:hover:text-[#C8B1F3]'
+          ? 'text-[var(--color-accent-lt)] hover:text-[var(--color-accent-lt-hover)]'
+          : 'text-[var(--color-text-40)] hover:text-[var(--color-accent-on-bg)]'
         }`}
     >
       {isFavorite ? (

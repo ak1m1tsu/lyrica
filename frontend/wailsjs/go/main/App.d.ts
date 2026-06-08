@@ -13,6 +13,8 @@ export function ConnectGoogleDrive():Promise<void>;
 
 export function ConnectSpotify():Promise<void>;
 
+export function DeleteCustomTheme(arg1:string):Promise<void>;
+
 export function DisconnectGoogleDrive():Promise<void>;
 
 export function DisconnectSpotify():Promise<void>;
@@ -21,11 +23,17 @@ export function DownloadAndInstall():Promise<void>;
 
 export function ExportLyrics(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function ExportTheme(arg1:string):Promise<void>;
+
 export function GetAppIcon():Promise<string>;
 
 export function GetByID(arg1:number):Promise<domain.Track>;
 
 export function GetCloseToTray():Promise<boolean>;
+
+export function GetCurrentTheme():Promise<string>;
+
+export function GetCustomThemes():Promise<Array<domain.Theme>>;
 
 export function GetDiscordPresence():Promise<boolean>;
 
@@ -43,15 +51,21 @@ export function GetUpdateAvailable():Promise<boolean>;
 
 export function GetVersion():Promise<string>;
 
+export function ImportTheme():Promise<domain.Theme>;
+
 export function IsFavorite(arg1:number):Promise<boolean>;
 
 export function PickFavoritesDir():Promise<string>;
 
 export function RemoveFavorite(arg1:number):Promise<void>;
 
+export function SaveCustomTheme(arg1:domain.Theme):Promise<void>;
+
 export function Search(arg1:string):Promise<Array<domain.Track>>;
 
 export function SetCloseToTray(arg1:boolean):Promise<void>;
+
+export function SetCurrentTheme(arg1:string):Promise<void>;
 
 export function SetDiscordPresence(arg1:boolean):Promise<void>;
 

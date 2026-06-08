@@ -20,7 +20,7 @@ import { AboutModal } from './components/AboutModal'
 type View = 'home' | 'lyrics' | 'settings'
 
 export default function App() {
-  const { theme, toggle } = useTheme()
+  const { themeId, themes, setThemeId, addTheme, updateTheme, removeTheme, exportTheme, importTheme } = useTheme()
   const { updateInfo, checking, downloading, progress, error: updateError, check: checkUpdate, install: installUpdate } = useUpdater()
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir, reload: reloadFavorites } = useFavorites()
   const googleDriveSync = useGoogleDriveSync(reloadFavorites)
@@ -104,8 +104,8 @@ export default function App() {
   })
 
   return (
-    <div className="flex h-screen flex-col dark:bg-[#0f1117] bg-white dark:text-white text-[#0f1117] overflow-hidden">
-      <TitleBar theme={theme} toggle={toggle} onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={handleOpenSettings} hasUpdate={updateInfo?.available ?? false} />
+    <div className="flex h-screen flex-col bg-[var(--color-bg)] text-[var(--color-text)] overflow-hidden">
+      <TitleBar onFavorites={() => setFavPanelOpen(true)} onAbout={() => setAboutOpen(true)} onSettings={handleOpenSettings} hasUpdate={updateInfo?.available ?? false} />
       <div className="flex-1 overflow-y-auto">
         {view === 'home' && (
           <div className="flex flex-col items-center justify-start px-4 pt-16 gap-6">
@@ -146,6 +146,14 @@ export default function App() {
             onCheckUpdate={checkUpdate}
             onInstallUpdate={installUpdate}
             googleDrive={googleDriveSync}
+            themeId={themeId}
+            themes={themes}
+            onSetTheme={setThemeId}
+            onAddTheme={addTheme}
+            onUpdateTheme={updateTheme}
+            onRemoveTheme={removeTheme}
+            onExportTheme={exportTheme}
+            onImportTheme={importTheme}
           />
         )}
       </div>

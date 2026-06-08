@@ -20,11 +20,11 @@ export function SearchBar({ onSearch, inputRef }: Props) {
         aria-label="Search for a song"
         placeholder="Search for a song..."
         ref={inputRef}
-        className="flex-1 rounded-lg bg-[#0f1117]/5 dark:bg-white/5 px-4 py-3 text-[#0f1117] dark:text-white placeholder-[#0f1117]/40 dark:placeholder-white/30 outline-none ring-1 ring-[#0f1117]/20 dark:ring-white/10 focus:ring-[#9B84D1] dark:focus:ring-white/30 transition-all"
+        className="flex-1 rounded-lg bg-[var(--color-card-05)] px-4 py-3 text-[var(--color-text)] placeholder-[var(--color-text-40)] outline-none ring-1 ring-[var(--color-card-20)] focus:ring-[var(--color-accent)] transition-all"
       />
       <button
         type="submit"
-        className="rounded-lg bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1] hover:from-[#D4C0F5] hover:to-[#A892D8] px-4 py-3 text-white transition-colors"
+        className="rounded-lg bg-gradient-to-r from-[var(--color-accent-lt)] to-[var(--color-accent)] hover:from-[var(--color-accent-lt-hover)] hover:to-[var(--color-accent-hover)] px-4 py-3 text-white transition-colors"
         aria-label="Search"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -62,4 +62,16 @@ type FavoritesStore interface {
 	GetLastSyncAt() string
 	// SetLastSyncAt persists the last successful sync timestamp.
 	SetLastSyncAt(ctx context.Context, t string) error
+	// GetCurrentTheme returns the ID of the currently active theme.
+	GetCurrentTheme() string
+	// SetCurrentTheme persists the active theme ID.
+	SetCurrentTheme(ctx context.Context, id string) error
+	// GetThemesDir returns the directory where custom theme JSON files are stored.
+	GetThemesDir() string
+	// GetCustomThemes returns all custom themes found in the themes directory.
+	GetCustomThemes() ([]Theme, error)
+	// SaveCustomTheme writes a theme to {themesDir}/{id}.json.
+	SaveCustomTheme(theme Theme) error
+	// DeleteCustomTheme removes {themesDir}/{id}.json.
+	DeleteCustomTheme(id string) error
 }

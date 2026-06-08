@@ -32,6 +32,7 @@ type config struct {
 	GoogleAccessToken    string `json:"googleAccessToken"`
 	GoogleRefreshToken   string `json:"googleRefreshToken"`
 	LastSyncAt           string `json:"lastSyncAt"`
+	CurrentTheme         string `json:"currentTheme"`
 }
 
 func defaultConfigDir() string {
@@ -75,6 +76,9 @@ func NewSQLiteStore(cfgDir string) (*SQLiteStore, error) {
 		s.cfg.FavoritesDir = cfgDir
 	}
 	if err := os.MkdirAll(s.cfg.FavoritesDir, 0755); err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(filepath.Join(cfgDir, "themes"), 0755); err != nil {
 		return nil, err
 	}
 	db, err := openSQLiteDB(s.dbPath())
@@ -474,4 +478,78 @@ func (s *SQLiteStore) SetLastSyncAt(ctx context.Context, t string) error {
 	defer s.mu.Unlock()
 	s.cfg.LastSyncAt = t
 	return s.saveConfig()
+}
+
+// GetCurrentTheme returns the ID of the currently active theme.
+func (s *SQLiteStore) GetCurrentTheme() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.CurrentTheme
+}
+
+// SetCurrentTheme persists the active theme ID.
+func (s *SQLiteStore) SetCurrentTheme(ctx context.Context, id string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.CurrentTheme = id
+	return s.saveConfig()
+}
+
+// GetThemesDir returns the directory where custom theme JSON files are stored.
+func (s *SQLiteStore) GetThemesDir() string {
+	return filepath.Join(s.cfgDir, "themes")
+}
+
+// GetCustomThemes reads all *.json files in the themes directory and returns
+// the parsed themes, skipping files that fail to parse.
+func (s *SQLiteStore) GetCustomThemes() ([]domain.Theme, error) {
+	dir := s.GetThemesDir()
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []domain.Theme{}, nil
+		}
+		return nil, err
+	}
+	themes := []domain.Theme{}
+	for _, e := range entries {
+		if e.IsDir() || filepath.Ext(e.Name()) != ".json" {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		if err != nil {
+			slog.Warn("themes: skipping unreadable file", "file", e.Name(), "error", err)
+			continue
+		}
+		var t domain.Theme
+		if err := json.Unmarshal(data, &t); err != nil {
+			slog.Warn("themes: skipping invalid JSON", "file", e.Name(), "error", err)
+			continue
+		}
+		themes = append(themes, t)
+	}
+	return themes, nil
+}
+
+// SaveCustomTheme writes the theme as {id}.json to the themes directory,
+// overwriting any existing file with the same ID.
+func (s *SQLiteStore) SaveCustomTheme(theme domain.Theme) error {
+	data, err := json.MarshalIndent(theme, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(s.GetThemesDir(), theme.ID+".json"), data, 0644)
+}
+
+// DeleteCustomTheme removes {id}.json from the themes directory.
+// Returns nil if the file does not exist.
+func (s *SQLiteStore) DeleteCustomTheme(id string) error {
+	err := os.Remove(filepath.Join(s.GetThemesDir(), id+".json"))
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
 }

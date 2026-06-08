@@ -18,19 +18,19 @@ interface Props {
 
 export function TrackCard({ track, onSelect }: Props) {
   const badge = track.instrumental
-    ? { label: 'Instrumental', className: 'bg-[#0f1117]/10 text-[#0f1117]/70 dark:bg-white/10 dark:text-white/70' }
+    ? { label: 'Instrumental', className: 'bg-[var(--color-card-10)] text-[var(--color-text-70)]' }
     : track.syncedLyrics
-    ? { label: 'Synced', className: 'bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1] text-white' }
-    : { label: 'Plain', className: 'bg-[#0f1117]/10 text-[#0f1117]/70 dark:bg-white/10 dark:text-white/70' }
+    ? { label: 'Synced', className: 'bg-gradient-to-r from-[var(--color-accent-lt)] to-[var(--color-accent)] text-white' }
+    : { label: 'Plain', className: 'bg-[var(--color-card-10)] text-[var(--color-text-70)]' }
 
   return (
     <button
-      className="flex w-full items-center justify-between rounded-lg bg-[#0f1117]/5 dark:bg-white/5 px-4 py-3 hover:bg-[#0f1117]/10 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9B84D1] transition-colors text-left"
+      className="flex w-full items-center justify-between rounded-lg bg-[var(--color-card-05)] px-4 py-3 hover:bg-[var(--color-card-10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] transition-colors text-left"
       onClick={() => onSelect(track)}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium text-[#0f1117] dark:text-white">{track.trackName}</p>
-        <p className="truncate text-sm text-[#0f1117]/60 dark:text-white/60">
+        <p className="truncate font-medium text-[var(--color-text)]">{track.trackName}</p>
+        <p className="truncate text-sm text-[var(--color-text-60)]">
           {track.artistName}{track.albumName ? ` — ${track.albumName}` : ''}
         </p>
       </div>
@@ -38,7 +38,7 @@ export function TrackCard({ track, onSelect }: Props) {
         <span className={`rounded px-2 py-0.5 text-xs font-medium ${badge.className}`}>
           {badge.label}
         </span>
-        <span className="text-xs text-[#0f1117]/50 dark:text-white/50">{formatDuration(track.duration)}</span>
+        <span className="text-xs text-[var(--color-text-50)]">{formatDuration(track.duration)}</span>
       </div>
     </button>
   )

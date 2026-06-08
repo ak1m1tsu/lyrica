@@ -22,6 +22,10 @@ export function ConnectSpotify() {
   return window['go']['main']['App']['ConnectSpotify']();
 }
 
+export function DeleteCustomTheme(arg1) {
+  return window['go']['main']['App']['DeleteCustomTheme'](arg1);
+}
+
 export function DisconnectGoogleDrive() {
   return window['go']['main']['App']['DisconnectGoogleDrive']();
 }
@@ -38,6 +42,10 @@ export function ExportLyrics(arg1, arg2, arg3) {
   return window['go']['main']['App']['ExportLyrics'](arg1, arg2, arg3);
 }
 
+export function ExportTheme(arg1) {
+  return window['go']['main']['App']['ExportTheme'](arg1);
+}
+
 export function GetAppIcon() {
   return window['go']['main']['App']['GetAppIcon']();
 }
@@ -48,6 +56,14 @@ export function GetByID(arg1) {
 
 export function GetCloseToTray() {
   return window['go']['main']['App']['GetCloseToTray']();
+}
+
+export function GetCurrentTheme() {
+  return window['go']['main']['App']['GetCurrentTheme']();
+}
+
+export function GetCustomThemes() {
+  return window['go']['main']['App']['GetCustomThemes']();
 }
 
 export function GetDiscordPresence() {
@@ -82,6 +98,10 @@ export function GetVersion() {
   return window['go']['main']['App']['GetVersion']();
 }
 
+export function ImportTheme() {
+  return window['go']['main']['App']['ImportTheme']();
+}
+
 export function IsFavorite(arg1) {
   return window['go']['main']['App']['IsFavorite'](arg1);
 }
@@ -94,12 +114,20 @@ export function RemoveFavorite(arg1) {
   return window['go']['main']['App']['RemoveFavorite'](arg1);
 }
 
+export function SaveCustomTheme(arg1) {
+  return window['go']['main']['App']['SaveCustomTheme'](arg1);
+}
+
 export function Search(arg1) {
   return window['go']['main']['App']['Search'](arg1);
 }
 
 export function SetCloseToTray(arg1) {
   return window['go']['main']['App']['SetCloseToTray'](arg1);
+}
+
+export function SetCurrentTheme(arg1) {
+  return window['go']['main']['App']['SetCurrentTheme'](arg1);
 }
 
 export function SetDiscordPresence(arg1) {

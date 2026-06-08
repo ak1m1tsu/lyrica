@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -20,7 +21,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const appVersion = "3.6.0"
+const appVersion = "3.7.0"
 
 // UpdateResult is the JSON-serialisable payload returned to the frontend by
 // update-related RPC methods and emitted on the "update:available" event.
@@ -215,6 +216,117 @@ func (a *App) GetCloseToTray() bool {
 // SetCloseToTray persists the close-to-tray preference.
 func (a *App) SetCloseToTray(enabled bool) error {
 	return a.favorites.SetCloseToTray(a.ctx, enabled)
+}
+
+// GetCurrentTheme returns the ID of the currently active theme.
+// Returns "" when no theme has been saved (defaults to "dark" on the frontend).
+func (a *App) GetCurrentTheme() string {
+	return a.favorites.CurrentTheme()
+}
+
+// SetCurrentTheme persists the active theme ID.
+func (a *App) SetCurrentTheme(id string) error {
+	return a.favorites.SetCurrentTheme(a.ctx, id)
+}
+
+// GetCustomThemes returns all user-created themes stored as JSON files.
+func (a *App) GetCustomThemes() ([]domain.Theme, error) {
+	return a.favorites.CustomThemes()
+}
+
+// SaveCustomTheme creates or updates a custom theme JSON file.
+// The ID must be non-empty, alphanumeric with hyphens/underscores only, and
+// must not conflict with the built-in IDs "light" or "dark".
+func (a *App) SaveCustomTheme(theme domain.Theme) error {
+	if theme.ID == "" || theme.Name == "" {
+		return errors.New("Theme ID and name are required.")
+	}
+	if theme.ID == "light" || theme.ID == "dark" {
+		return errors.New("Cannot overwrite built-in themes.")
+	}
+	for _, c := range theme.ID {
+		if !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_') {
+			return errors.New("Theme ID may only contain lowercase letters, digits, hyphens, and underscores.")
+		}
+	}
+	return a.favorites.SaveCustomTheme(theme)
+}
+
+// DeleteCustomTheme removes a custom theme by ID.
+// Refuses to delete the built-in "light" and "dark" themes.
+func (a *App) DeleteCustomTheme(id string) error {
+	if id == "light" || id == "dark" {
+		return errors.New("Cannot delete built-in themes.")
+	}
+	return a.favorites.DeleteCustomTheme(id)
+}
+
+// ExportTheme opens a native save dialog and writes the custom theme as a JSON file.
+func (a *App) ExportTheme(id string) error {
+	themes, err := a.favorites.CustomThemes()
+	if err != nil {
+		return err
+	}
+	var theme *domain.Theme
+	for i := range themes {
+		if themes[i].ID == id {
+			theme = &themes[i]
+			break
+		}
+	}
+	if theme == nil {
+		return errors.New("Theme not found.")
+	}
+	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "Export theme",
+		DefaultFilename: sanitizeFilename(theme.Name) + ".json",
+		Filters:         []runtime.FileFilter{{DisplayName: "JSON files (*.json)", Pattern: "*.json"}},
+	})
+	if err != nil || path == "" {
+		return err
+	}
+	if !strings.HasSuffix(path, ".json") {
+		path += ".json"
+	}
+	data, err := json.MarshalIndent(theme, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0644)
+}
+
+// ImportTheme opens a native file picker, reads the selected JSON theme,
+// saves it to the themes directory, and sets it as the active theme.
+// Returns the imported theme so the frontend can update its state immediately.
+func (a *App) ImportTheme() (*domain.Theme, error) {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title:   "Import theme",
+		Filters: []runtime.FileFilter{{DisplayName: "JSON files (*.json)", Pattern: "*.json"}},
+	})
+	if err != nil || path == "" {
+		return nil, err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read theme file: %w", err)
+	}
+	var theme domain.Theme
+	if err := json.Unmarshal(data, &theme); err != nil {
+		return nil, errors.New("Invalid theme file format.")
+	}
+	if theme.ID == "" || theme.Name == "" {
+		return nil, errors.New("Theme file is missing required id or name fields.")
+	}
+	if theme.ID == "light" || theme.ID == "dark" {
+		return nil, errors.New("Cannot import a theme with a reserved built-in ID.")
+	}
+	if err := a.favorites.SaveCustomTheme(theme); err != nil {
+		return nil, err
+	}
+	if err := a.favorites.SetCurrentTheme(a.ctx, theme.ID); err != nil {
+		return nil, err
+	}
+	return &theme, nil
 }
 
 // GetDiscordPresence returns whether Discord Rich Presence is enabled.
