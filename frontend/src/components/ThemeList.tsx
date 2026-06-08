@@ -19,7 +19,7 @@ export function ThemeList({ themes, activeId, onEdit, onExport, onDelete }: Prop
   }
 
   return (
-    <ul className="flex flex-col gap-1">
+    <ul className="flex flex-col gap-1 max-h-52 overflow-y-auto lyrics-scroll">
       {customThemes.map(theme => (
         <li
           key={theme.id}

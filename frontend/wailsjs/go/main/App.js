@@ -86,6 +86,10 @@ export function GetLastSyncTime() {
   return window['go']['main']['App']['GetLastSyncTime']();
 }
 
+export function GetSpotifyAutoSearch() {
+  return window['go']['main']['App']['GetSpotifyAutoSearch']();
+}
+
 export function GetSpotifyEnabled() {
   return window['go']['main']['App']['GetSpotifyEnabled']();
 }
@@ -132,6 +136,10 @@ export function SetCurrentTheme(arg1) {
 
 export function SetDiscordPresence(arg1) {
   return window['go']['main']['App']['SetDiscordPresence'](arg1);
+}
+
+export function SetSpotifyAutoSearch(arg1) {
+  return window['go']['main']['App']['SetSpotifyAutoSearch'](arg1);
 }
 
 export function SetSpotifyEnabled(arg1) {

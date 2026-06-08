@@ -96,6 +96,16 @@ func (s *Favorites) SetSpotifyRefreshToken(ctx context.Context, token string) er
 	return s.store.SetSpotifyRefreshToken(ctx, token)
 }
 
+// SpotifyAutoSearch returns the persisted auto-search preference.
+func (s *Favorites) SpotifyAutoSearch() bool {
+	return s.store.GetSpotifyAutoSearch()
+}
+
+// SetSpotifyAutoSearch persists the auto-search preference.
+func (s *Favorites) SetSpotifyAutoSearch(ctx context.Context, enabled bool) error {
+	return s.store.SetSpotifyAutoSearch(ctx, enabled)
+}
+
 // GoogleDriveEnabled returns whether Google Drive sync is enabled.
 func (s *Favorites) GoogleDriveEnabled() bool {
 	return s.store.GoogleDriveEnabled()

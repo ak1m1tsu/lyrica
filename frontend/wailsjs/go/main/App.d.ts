@@ -45,6 +45,8 @@ export function GetGoogleDriveEnabled():Promise<boolean>;
 
 export function GetLastSyncTime():Promise<string>;
 
+export function GetSpotifyAutoSearch():Promise<boolean>;
+
 export function GetSpotifyEnabled():Promise<boolean>;
 
 export function GetUpdateAvailable():Promise<boolean>;
@@ -68,6 +70,8 @@ export function SetCloseToTray(arg1:boolean):Promise<void>;
 export function SetCurrentTheme(arg1:string):Promise<void>;
 
 export function SetDiscordPresence(arg1:boolean):Promise<void>;
+
+export function SetSpotifyAutoSearch(arg1:boolean):Promise<void>;
 
 export function SetSpotifyEnabled(arg1:boolean):Promise<void>;
 

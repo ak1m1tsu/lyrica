@@ -25,8 +25,9 @@ type config struct {
 	FavoritesDir        string `json:"favoritesDir"`
 	CloseToTray         bool   `json:"closeToTray"`
 	DiscordPresence     bool   `json:"discordPresence"`
-	SpotifyEnabled       bool   `json:"spotifyEnabled"`
-	SpotifyAccessToken   string `json:"spotifyAccessToken"`
+	SpotifyEnabled              bool   `json:"spotifyEnabled"`
+	SpotifyAutoSearchDisabled   bool   `json:"spotifyAutoSearchDisabled"`
+	SpotifyAccessToken          string `json:"spotifyAccessToken"`
 	SpotifyRefreshToken  string `json:"spotifyRefreshToken"`
 	GoogleDriveEnabled   bool   `json:"googleDriveEnabled"`
 	GoogleAccessToken    string `json:"googleAccessToken"`
@@ -405,6 +406,25 @@ func (s *SQLiteStore) SetSpotifyRefreshToken(ctx context.Context, token string) 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.cfg.SpotifyRefreshToken = token
+	return s.saveConfig()
+}
+
+// GetSpotifyAutoSearch returns whether auto-search on track change is enabled.
+// The stored field is inverted (disabled flag) so the zero-value means "enabled".
+func (s *SQLiteStore) GetSpotifyAutoSearch() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return !s.cfg.SpotifyAutoSearchDisabled
+}
+
+// SetSpotifyAutoSearch persists the auto-search preference.
+func (s *SQLiteStore) SetSpotifyAutoSearch(ctx context.Context, enabled bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.SpotifyAutoSearchDisabled = !enabled
 	return s.saveConfig()
 }
 

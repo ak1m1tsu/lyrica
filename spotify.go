@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"net/http"
 	"sync"
 	"time"
 
@@ -32,6 +34,7 @@ func (s *spotifyService) startPolling(
 	token *oauth2.Token,
 	onToken func(access, refresh string),
 	onTrack func(trackName, artistName string),
+	onError func(err error),
 ) {
 	s.mu.Lock()
 	if s.running {
@@ -65,6 +68,13 @@ func (s *spotifyService) startPolling(
 			case <-ticker.C:
 				current, err := client.PlayerCurrentlyPlaying(ctx)
 				if err != nil {
+					if isSpotifyAuthError(err) {
+						slog.Warn("spotify: auth error, stopping poll", "error", err)
+						if onError != nil {
+							onError(err)
+						}
+						return
+					}
 					slog.Warn("spotify: poll error", "error", err)
 					continue
 				}
@@ -84,6 +94,24 @@ func (s *spotifyService) startPolling(
 			}
 		}
 	}()
+}
+
+// isSpotifyAuthError reports whether err indicates an expired or revoked token.
+func isSpotifyAuthError(err error) bool {
+	if err == nil {
+		return false
+	}
+	// oauth2 refresh failure (refresh token revoked/expired)
+	var retrieveErr *oauth2.RetrieveError
+	if errors.As(err, &retrieveErr) {
+		return true
+	}
+	// Spotify API 401 Unauthorized
+	var spotErr spotify.Error
+	if errors.As(err, &spotErr) && spotErr.Status == http.StatusUnauthorized {
+		return true
+	}
+	return false
 }
 
 func (s *spotifyService) stopPolling() {

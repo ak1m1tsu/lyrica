@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EventsOn } from '../../wailsjs/runtime/runtime'
 
 interface SpotifyTrackEvent {
@@ -7,16 +7,20 @@ interface SpotifyTrackEvent {
 }
 
 export function useSpotify(onTrack: (trackName: string, artistName: string) => void) {
-  // Always call the latest callback without re-registering the event listener.
   const onTrackRef = useRef(onTrack)
   onTrackRef.current = onTrack
+  const [tokenExpired, setTokenExpired] = useState(false)
 
   useEffect(() => {
-    const off = EventsOn('spotify:track', (data: SpotifyTrackEvent) => {
+    const offTrack = EventsOn('spotify:track', (data: SpotifyTrackEvent) => {
       if (data?.trackName) {
         onTrackRef.current(data.trackName, data.artistName ?? '')
       }
     })
-    return () => { off() }
+    const offExpired = EventsOn('spotify:token_expired', () => setTokenExpired(true))
+    const offConnected = EventsOn('spotify:connected', () => setTokenExpired(false))
+    return () => { offTrack(); offExpired(); offConnected() }
   }, [])
+
+  return { tokenExpired }
 }

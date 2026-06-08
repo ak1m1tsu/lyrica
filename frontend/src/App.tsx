@@ -25,7 +25,7 @@ export default function App() {
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir, reload: reloadFavorites } = useFavorites()
   const googleDriveSync = useGoogleDriveSync(reloadFavorites)
   const { results, loading: searchLoading, error: searchError, search: handleSearchBase } = useSearch()
-  useSpotify((trackName, artistName) => {
+  const { tokenExpired: spotifyTokenExpired } = useSpotify((trackName, artistName) => {
     setView('home')
     setSelectedTrack(null)
     handleSearch(`${artistName} ${trackName}`.trim())
@@ -146,6 +146,7 @@ export default function App() {
             onCheckUpdate={checkUpdate}
             onInstallUpdate={installUpdate}
             googleDrive={googleDriveSync}
+            spotifyTokenExpired={spotifyTokenExpired}
             themeId={themeId}
             themes={themes}
             onSetTheme={setThemeId}

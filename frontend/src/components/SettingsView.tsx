@@ -3,6 +3,7 @@ import {
   GetCloseToTray, SetCloseToTray,
   GetDiscordPresence, SetDiscordPresence,
   GetSpotifyEnabled, ConnectSpotify, DisconnectSpotify,
+  GetSpotifyAutoSearch, SetSpotifyAutoSearch,
 } from '../../wailsjs/go/main/App'
 import type { UpdateInfo, DownloadProgress } from '../hooks/useUpdater'
 import type { useGoogleDriveSync } from '../hooks/useGoogleDriveSync'
@@ -26,6 +27,7 @@ interface Props {
   onCheckUpdate?: () => void
   onInstallUpdate?: () => void
   googleDrive?: ReturnType<typeof useGoogleDriveSync>
+  spotifyTokenExpired?: boolean
   themeId: string
   themes: ThemeDefinition[]
   onSetTheme: (id: string) => Promise<void>
@@ -41,6 +43,7 @@ export function SettingsView({
   hasUpdate, updateInfo, checking, downloading, downloadProgress, updateError,
   onCheckUpdate, onInstallUpdate,
   googleDrive,
+  spotifyTokenExpired,
   themeId, themes, onSetTheme, onAddTheme, onUpdateTheme, onRemoveTheme, onExportTheme, onImportTheme,
 }: Props) {
   const [section, setSection] = useState<Section>('appearance')
@@ -49,6 +52,7 @@ export function SettingsView({
   const [spotifyEnabled, setSpotifyEnabled] = useState(false)
   const [spotifyConnecting, setSpotifyConnecting] = useState(false)
   const [spotifyError, setSpotifyError] = useState('')
+  const [spotifyAutoSearch, setSpotifyAutoSearch] = useState(true)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingTheme, setEditingTheme] = useState<ThemeDefinition | undefined>()
 
@@ -56,6 +60,7 @@ export function SettingsView({
     GetCloseToTray().then(setCloseToTray)
     GetDiscordPresence().then(setDiscordPresence)
     GetSpotifyEnabled().then(setSpotifyEnabled)
+    GetSpotifyAutoSearch().then(setSpotifyAutoSearch)
   }, [])
 
   async function handleCloseToTrayToggle() {
@@ -68,6 +73,12 @@ export function SettingsView({
     const next = !discordPresence
     setDiscordPresence(next)
     await SetDiscordPresence(next)
+  }
+
+  async function handleSpotifyAutoSearchToggle() {
+    const next = !spotifyAutoSearch
+    setSpotifyAutoSearch(next)
+    await SetSpotifyAutoSearch(next)
   }
 
   async function handleSpotifyConnect() {
@@ -235,20 +246,57 @@ export function SettingsView({
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-[var(--color-text-80)]">Spotify</span>
                   <div className="flex items-center gap-1.5">
-                    <span className={`h-2 w-2 rounded-full ${spotifyEnabled ? 'bg-green-400' : 'bg-[var(--color-card-20)]'}`} />
+                    <span className={`h-2 w-2 rounded-full ${
+                      spotifyEnabled && spotifyTokenExpired ? 'bg-amber-400' :
+                      spotifyEnabled ? 'bg-green-400' : 'bg-[var(--color-card-20)]'
+                    }`} />
                     <span className="text-xs text-[var(--color-text-40)]">
-                      {spotifyEnabled ? 'Connected' : 'Not connected'}
+                      {spotifyEnabled && spotifyTokenExpired ? 'Session expired' :
+                       spotifyEnabled ? 'Connected' : 'Not connected'}
                     </span>
                   </div>
                 </div>
 
-                {spotifyEnabled ? (
-                  <button
-                    onClick={handleSpotifyDisconnect}
-                    className="w-full rounded-md py-1.5 text-sm bg-[var(--color-card-10)] text-[var(--color-text-70)] hover:bg-[var(--color-card-20)] transition-colors"
-                  >
-                    Disconnect
-                  </button>
+                {spotifyEnabled && spotifyTokenExpired ? (
+                  <>
+                    <div className="rounded-md bg-amber-500/10 px-3 py-2.5 flex flex-col gap-1">
+                      <p className="text-xs text-amber-400 font-medium">Session expired</p>
+                      <p className="text-xs text-amber-400/70">Your Spotify authorization has expired. Reconnect to continue auto-searching.</p>
+                    </div>
+                    <button
+                      onClick={handleSpotifyConnect}
+                      disabled={spotifyConnecting}
+                      className={`w-full rounded-md py-1.5 text-sm text-white transition-colors ${
+                        spotifyConnecting ? 'bg-[var(--color-accent-20)] cursor-not-allowed' : 'bg-gradient-to-r from-[var(--color-accent-lt)] to-[var(--color-accent)] hover:opacity-90'
+                      }`}
+                    >
+                      {spotifyConnecting ? 'Reconnecting…' : 'Reconnect to Spotify'}
+                    </button>
+                    <hr className="border-[var(--color-border)]" />
+                    <button
+                      onClick={handleSpotifyDisconnect}
+                      className="w-full rounded-md py-1.5 text-sm bg-[var(--color-card-10)] text-[var(--color-text-70)] hover:bg-[var(--color-card-20)] transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </>
+                ) : spotifyEnabled ? (
+                  <>
+                    <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+                      <span className="text-sm text-[var(--color-text-80)]">Auto-search on track change</span>
+                      {toggle(spotifyAutoSearch, handleSpotifyAutoSearchToggle)}
+                    </label>
+                    <p className="text-xs text-[var(--color-text-40)]">
+                      Automatically search for lyrics when the track changes in Spotify.
+                    </p>
+                    <hr className="border-[var(--color-border)]" />
+                    <button
+                      onClick={handleSpotifyDisconnect}
+                      className="w-full rounded-md py-1.5 text-sm bg-[var(--color-card-10)] text-[var(--color-text-70)] hover:bg-[var(--color-card-20)] transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  </>
                 ) : (
                   <button
                     onClick={handleSpotifyConnect}

@@ -46,6 +46,10 @@ type FavoritesStore interface {
 	GetSpotifyRefreshToken() string
 	// SetSpotifyRefreshToken persists the Spotify refresh token.
 	SetSpotifyRefreshToken(ctx context.Context, token string) error
+	// GetSpotifyAutoSearch returns whether auto-search on track change is enabled.
+	GetSpotifyAutoSearch() bool
+	// SetSpotifyAutoSearch persists the auto-search preference.
+	SetSpotifyAutoSearch(ctx context.Context, enabled bool) error
 	// GoogleDriveEnabled returns whether Google Drive sync is enabled.
 	GoogleDriveEnabled() bool
 	// SetGoogleDriveEnabled persists the Google Drive sync preference.

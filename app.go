@@ -21,7 +21,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const appVersion = "3.7.1"
+const appVersion = "3.8.0"
 
 // UpdateResult is the JSON-serialisable payload returned to the frontend by
 // update-related RPC methods and emitted on the "update:available" event.
@@ -82,7 +82,7 @@ func (a *App) startup(ctx context.Context) {
 				RefreshToken: a.favorites.SpotifyRefreshToken(),
 				TokenType:    "Bearer",
 			}
-			a.spotify.startPolling(ctx, auth, tok, a.onSpotifyToken, a.onSpotifyTrack)
+			a.spotify.startPolling(ctx, auth, tok, a.onSpotifyToken, a.onSpotifyTrack, a.onSpotifyError)
 		}
 	}
 	go func() {
@@ -369,17 +369,36 @@ func (a *App) onSpotifyToken(access, refresh string) {
 	}
 }
 
-// onSpotifyTrack emits the currently-playing Spotify track to the frontend.
+// onSpotifyTrack emits the currently-playing Spotify track to the frontend,
+// but only when auto-search is enabled.
 func (a *App) onSpotifyTrack(trackName, artistName string) {
+	if !a.favorites.SpotifyAutoSearch() {
+		return
+	}
 	runtime.EventsEmit(a.ctx, "spotify:track", map[string]string{
 		"trackName":  trackName,
 		"artistName": artistName,
 	})
 }
 
+// onSpotifyError notifies the frontend that the Spotify token has expired.
+func (a *App) onSpotifyError(_ error) {
+	runtime.EventsEmit(a.ctx, "spotify:token_expired", nil)
+}
+
 // GetSpotifyEnabled returns whether the Spotify integration is enabled.
 func (a *App) GetSpotifyEnabled() bool {
 	return a.favorites.SpotifyEnabled()
+}
+
+// GetSpotifyAutoSearch returns whether auto-search on track change is enabled.
+func (a *App) GetSpotifyAutoSearch() bool {
+	return a.favorites.SpotifyAutoSearch()
+}
+
+// SetSpotifyAutoSearch persists the auto-search preference.
+func (a *App) SetSpotifyAutoSearch(enabled bool) error {
+	return a.favorites.SetSpotifyAutoSearch(a.ctx, enabled)
 }
 
 // SetSpotifyEnabled enables or disables the Spotify integration preference.
@@ -458,7 +477,8 @@ func (a *App) ConnectSpotify() error {
 			return err
 		}
 		a.spotify.stopPolling()
-		a.spotify.startPolling(a.ctx, auth, token, a.onSpotifyToken, a.onSpotifyTrack)
+		a.spotify.startPolling(a.ctx, auth, token, a.onSpotifyToken, a.onSpotifyTrack, a.onSpotifyError)
+		runtime.EventsEmit(a.ctx, "spotify:connected", nil)
 		return nil
 	case err := <-errCh:
 		return err
