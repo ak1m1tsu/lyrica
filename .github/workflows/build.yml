@@ -32,16 +32,13 @@ jobs:
       - name: Build NSIS installer
         run: wails build -nsis -ldflags "-X main.googleClientID=${{ secrets.GOOGLE_CLIENT_ID }} -X main.googleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}"
 
-      - name: Build portable binary
-        run: wails build -ldflags "-X main.googleClientID=${{ secrets.GOOGLE_CLIENT_ID }} -X main.googleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}" -o build/bin/lyrica-portable.exe
-
       - name: Get version
         id: version
         run: echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Zip portable binary
-        run: Compress-Archive -Path build/bin/lyrica-portable.exe -DestinationPath "build/bin/lyrica-${{ steps.version.outputs.tag }}-windows-amd64.zip"
+        run: Compress-Archive -Path build/bin/lyrica.exe -DestinationPath "build/bin/lyrica-${{ steps.version.outputs.tag }}-windows-amd64.zip"
 
       - uses: actions/upload-artifact@v7
         with:
