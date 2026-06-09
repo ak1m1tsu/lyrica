@@ -21,7 +21,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const appVersion = "3.8.0"
+const appVersion = "3.9.0"
 
 // UpdateResult is the JSON-serialisable payload returned to the frontend by
 // update-related RPC methods and emitted on the "update:available" event.
@@ -86,14 +86,27 @@ func (a *App) startup(ctx context.Context) {
 		}
 	}
 	go func() {
+		if !a.favorites.CheckUpdatesEnabled() {
+			return
+		}
 		ctx, cancel := context.WithTimeout(a.ctx, 30*time.Second)
 		defer cancel()
 		info, err := a.updater.CheckForUpdate(ctx)
 		if err != nil || !info.Available {
 			return
 		}
+		if info.LatestVersion == a.favorites.SkippedVersion() {
+			return
+		}
 		a.updateAvailable.Store(true)
 		a.cachedUpdate.Store(info)
+		if a.favorites.AutoUpdateEnabled() {
+			// Apply the update silently in the same goroutine; if it fails,
+			// fall back to notifying the user via the banner.
+			if applyErr := a.downloadAndApplyUpdate(ctx, info); applyErr == nil {
+				return
+			}
+		}
 		runtime.EventsEmit(a.ctx, "update:available", UpdateResult{
 			Available:      true,
 			LatestVersion:  info.LatestVersion,
@@ -650,8 +663,8 @@ func (a *App) GetUpdateAvailable() bool {
 	return a.updateAvailable.Load()
 }
 
-// DownloadAndInstall downloads the latest installer and launches it, then
-// quits the app. It is guarded by an atomic flag to prevent concurrent calls.
+// DownloadAndInstall downloads the latest binary and applies it in-place, then
+// relaunches the app. It is guarded by an atomic flag to prevent concurrent calls.
 func (a *App) DownloadAndInstall() error {
 	if !a.downloadInProgress.CompareAndSwap(false, true) {
 		return errors.New("A download is already in progress.")
@@ -665,8 +678,17 @@ func (a *App) DownloadAndInstall() error {
 
 	dlCtx, dlCancel := context.WithTimeout(a.ctx, 10*time.Minute)
 	defer dlCancel()
+	if err := a.downloadAndApplyUpdate(dlCtx, info); err != nil {
+		return err
+	}
+	return nil
+}
+
+// downloadAndApplyUpdate downloads the binary zip, extracts the executable,
+// applies the update in-place, and relaunches the app.
+func (a *App) downloadAndApplyUpdate(ctx context.Context, info *service.UpdateInfo) error {
 	var lastEmit time.Time
-	installerPath, err := infragithub.DownloadInstaller(dlCtx, info.DownloadURL, func(received, total int64) {
+	zipPath, err := infragithub.DownloadBinary(ctx, info.DownloadURL, func(received, total int64) {
 		now := time.Now()
 		if now.Sub(lastEmit) < 250*time.Millisecond && !(total > 0 && received == total) {
 			return
@@ -680,10 +702,48 @@ func (a *App) DownloadAndInstall() error {
 	if err != nil {
 		return errors.New("Download failed. Please try again.")
 	}
+	defer os.Remove(zipPath)
 
-	if err := a.launchInstallerAndQuit(installerPath); err != nil {
-		return errors.New("Failed to launch installer. Please run it manually.")
+	binaryPath, err := infragithub.ExtractBinaryFromZip(zipPath)
+	if err != nil {
+		return errors.New("Failed to extract update. Please try again.")
 	}
+	defer os.Remove(binaryPath)
+
+	if err := a.applyUpdateAndRelaunch(binaryPath); err != nil {
+		return errors.New("Failed to apply update. Please try again.")
+	}
+	return nil
+}
+
+// GetAutoUpdateEnabled returns whether automatic background updates are enabled.
+func (a *App) GetAutoUpdateEnabled() bool {
+	return a.favorites.AutoUpdateEnabled()
+}
+
+// SetAutoUpdateEnabled persists the auto-update preference.
+func (a *App) SetAutoUpdateEnabled(enabled bool) error {
+	return a.favorites.SetAutoUpdateEnabled(a.ctx, enabled)
+}
+
+// GetCheckUpdatesEnabled returns whether the app should check for updates at all.
+func (a *App) GetCheckUpdatesEnabled() bool {
+	return a.favorites.CheckUpdatesEnabled()
+}
+
+// SetCheckUpdatesEnabled persists the check-for-updates preference.
+func (a *App) SetCheckUpdatesEnabled(enabled bool) error {
+	return a.favorites.SetCheckUpdatesEnabled(a.ctx, enabled)
+}
+
+// SkipUpdateVersion persists the given version as skipped and clears the
+// cached update so the notification disappears.
+func (a *App) SkipUpdateVersion(version string) error {
+	if err := a.favorites.SetSkippedVersion(a.ctx, version); err != nil {
+		return err
+	}
+	a.updateAvailable.Store(false)
+	a.cachedUpdate.Store(nil)
 	return nil
 }
 

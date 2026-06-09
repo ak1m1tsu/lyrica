@@ -16,12 +16,19 @@ import { useUpdater } from './hooks/useUpdater'
 import { useGoogleDriveSync } from './hooks/useGoogleDriveSync'
 import { FavoritesPanel } from './components/FavoritesPanel'
 import { AboutModal } from './components/AboutModal'
+import { UpdateBanner } from './components/UpdateBanner'
 
 type View = 'home' | 'lyrics' | 'settings'
 
 export default function App() {
   const { themeId, themes, setThemeId, addTheme, updateTheme, removeTheme, exportTheme, importTheme } = useTheme()
-  const { updateInfo, checking, downloading, progress, error: updateError, check: checkUpdate, install: installUpdate } = useUpdater()
+  const {
+    updateInfo, checking, downloading, progress, error: updateError,
+    dismissed, autoUpdate, checkUpdates,
+    check: checkUpdate, install: installUpdate,
+    skipVersion, dismiss: dismissUpdate,
+    setAutoUpdate, setCheckUpdates,
+  } = useUpdater()
   const { favorites, favoritesDir, isFavorite, toggleFavorite, pickDir, reload: reloadFavorites } = useFavorites()
   const googleDriveSync = useGoogleDriveSync(reloadFavorites)
   const { results, loading: searchLoading, error: searchError, search: handleSearchBase } = useSearch()
@@ -143,8 +150,12 @@ export default function App() {
             downloading={downloading}
             downloadProgress={progress}
             updateError={updateError}
+            autoUpdate={autoUpdate}
+            checkUpdates={checkUpdates}
             onCheckUpdate={checkUpdate}
             onInstallUpdate={installUpdate}
+            onSetAutoUpdate={setAutoUpdate}
+            onSetCheckUpdates={setCheckUpdates}
             googleDrive={googleDriveSync}
             spotifyTokenExpired={spotifyTokenExpired}
             themeId={themeId}
@@ -158,6 +169,17 @@ export default function App() {
           />
         )}
       </div>
+      {view !== 'settings' && (
+        <UpdateBanner
+          updateInfo={updateInfo}
+          dismissed={dismissed}
+          downloading={downloading}
+          progress={progress}
+          onInstall={installUpdate}
+          onSkip={skipVersion}
+          onDismiss={dismissUpdate}
+        />
+      )}
       <FavoritesPanel
         open={favPanelOpen}
         favorites={favorites}

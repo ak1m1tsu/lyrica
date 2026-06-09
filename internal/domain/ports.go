@@ -78,4 +78,16 @@ type FavoritesStore interface {
 	SaveCustomTheme(theme Theme) error
 	// DeleteCustomTheme removes {themesDir}/{id}.json.
 	DeleteCustomTheme(id string) error
+	// AutoUpdateEnabled returns whether automatic background updates are enabled.
+	AutoUpdateEnabled() bool
+	// SetAutoUpdateEnabled persists the auto-update preference.
+	SetAutoUpdateEnabled(ctx context.Context, enabled bool) error
+	// CheckUpdatesEnabled returns whether the app should check for updates at all.
+	CheckUpdatesEnabled() bool
+	// SetCheckUpdatesEnabled persists the check-for-updates preference.
+	SetCheckUpdatesEnabled(ctx context.Context, enabled bool) error
+	// SkippedVersion returns the version string the user chose to skip.
+	SkippedVersion() string
+	// SetSkippedVersion persists the version the user chose to skip.
+	SetSkippedVersion(ctx context.Context, version string) error
 }

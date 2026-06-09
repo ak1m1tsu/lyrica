@@ -1,16 +1,20 @@
 package github
 
 import (
+	"archive/zip"
 	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 const (
-	downloadChunkSize   = 32 * 1024        // 32 KiB
-	maxInstallerBytes   = 200 * 1024 * 1024 // 200 MiB hard ceiling
+	downloadChunkSize = 32 * 1024         // 32 KiB
+	maxInstallerBytes = 200 * 1024 * 1024 // 200 MiB hard ceiling
 )
 
 // ProgressFunc is called after each chunk is written to disk.
@@ -18,21 +22,20 @@ const (
 // reported by the server (may be 0 if unknown).
 type ProgressFunc func(received, total int64)
 
-// DownloadInstaller downloads the installer at the given URL to a temporary
+// DownloadBinary downloads the binary zip at the given URL to a temporary
 // file and returns its absolute path. Progress is reported via the progress
 // callback after each 32 KiB chunk.
 //
 // If the context is cancelled or any error occurs the partial file is removed
 // before returning.
-func DownloadInstaller(ctx context.Context, url string, progress ProgressFunc) (string, error) {
+func DownloadBinary(ctx context.Context, url string, progress ProgressFunc) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return "", fmt.Errorf("github: build download request: %w", err)
 	}
 	req.Header.Set("User-Agent", githubUserAgent)
 
-	// No timeout — installer files can be large; caller controls cancellation
-	// via the context.
+	// No timeout — files can be large; caller controls cancellation via context.
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -45,10 +48,10 @@ func DownloadInstaller(ctx context.Context, url string, progress ProgressFunc) (
 	}
 
 	if resp.ContentLength > maxInstallerBytes {
-		return "", fmt.Errorf("github: installer too large (%d bytes)", resp.ContentLength)
+		return "", fmt.Errorf("github: binary too large (%d bytes)", resp.ContentLength)
 	}
 
-	tmp, err := os.CreateTemp("", "lyrica-update-*.exe")
+	tmp, err := os.CreateTemp("", "lyrica-update-*.zip")
 	if err != nil {
 		return "", fmt.Errorf("github: create temp file: %w", err)
 	}
@@ -103,4 +106,62 @@ func DownloadInstaller(ctx context.Context, url string, progress ProgressFunc) (
 		return "", fmt.Errorf("github: close temp file: %w", err)
 	}
 	return tmpPath, nil
+}
+
+// ExtractBinaryFromZip opens a zip archive downloaded by DownloadBinary and
+// extracts the platform executable to a separate temp file, returning its path.
+// On Windows it looks for the first .exe entry; on macOS it looks for the
+// Contents/MacOS/ binary inside the .app bundle.
+func ExtractBinaryFromZip(zipPath string) (string, error) {
+	r, err := zip.OpenReader(zipPath)
+	if err != nil {
+		return "", fmt.Errorf("github: open zip: %w", err)
+	}
+	defer r.Close()
+
+	for _, f := range r.File {
+		if !isBinaryEntry(f.Name) {
+			continue
+		}
+		src, err := f.Open()
+		if err != nil {
+			return "", fmt.Errorf("github: open zip entry %q: %w", f.Name, err)
+		}
+
+		ext := filepath.Ext(f.Name)
+		tmp, err := os.CreateTemp("", "lyrica-bin-*"+ext)
+		if err != nil {
+			src.Close()
+			return "", fmt.Errorf("github: create temp binary: %w", err)
+		}
+		tmpPath := tmp.Name()
+
+		limited := io.LimitReader(src, maxInstallerBytes+1)
+		if _, err := io.Copy(tmp, limited); err != nil {
+			src.Close()
+			tmp.Close()
+			os.Remove(tmpPath)
+			return "", fmt.Errorf("github: extract binary: %w", err)
+		}
+		src.Close()
+		if err := tmp.Close(); err != nil {
+			os.Remove(tmpPath)
+			return "", fmt.Errorf("github: close extracted binary: %w", err)
+		}
+		// Ensure the extracted file is executable (no-op on Windows).
+		_ = os.Chmod(tmpPath, 0755)
+		return tmpPath, nil
+	}
+	return "", fmt.Errorf("github: no binary found in zip")
+}
+
+// isBinaryEntry returns true for zip entries that are the main executable.
+func isBinaryEntry(name string) bool {
+	switch runtime.GOOS {
+	case "darwin":
+		// Match Contents/MacOS/<name> — the actual binary inside the .app bundle.
+		return strings.Contains(name, "Contents/MacOS/") && !strings.HasSuffix(name, "/")
+	default: // windows
+		return strings.HasSuffix(name, ".exe") && !strings.Contains(name, "/")
+	}
 }

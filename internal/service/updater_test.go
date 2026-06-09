@@ -20,9 +20,9 @@ func (s *stubGithubClient) LatestRelease(_ context.Context) (*githubinfra.Releas
 }
 
 // windowsAsset is a convenience helper that returns a release asset matching
-// the Windows NSIS installer naming pattern.
+// the Windows portable binary zip naming pattern.
 func windowsAsset(version string) githubinfra.ReleaseAsset {
-	name := "lyrica-" + version + "-amd64-installer.exe"
+	name := "lyrica-" + version + "-windows-amd64.zip"
 	return githubinfra.ReleaseAsset{
 		Name:               name,
 		BrowserDownloadURL: "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/1/" + name,
@@ -180,7 +180,7 @@ func TestCheckForUpdate_NoUpdate_NoWindowsAsset(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if info.Available {
-		t.Error("expected Available=false when no Windows installer asset is present")
+		t.Error("expected Available=false when no platform binary zip is present")
 	}
 }
 
@@ -244,20 +244,20 @@ func TestCheckForUpdate_StripsLeadingV_FromTag(t *testing.T) {
 }
 
 func TestCheckForUpdate_SelectsFirstWindowsAsset(t *testing.T) {
-	// Release has multiple assets; the first matching the installer suffix wins.
+	// Release has multiple assets; the first matching the binary zip suffix wins.
 	stub := &stubGithubClient{
 		release: &githubinfra.Release{
 			TagName: "v3.4.0",
 			Body:    "",
 			Assets: []githubinfra.ReleaseAsset{
 				{
-					Name:               "lyrica-3.4.0-amd64-installer.exe",
-					BrowserDownloadURL: "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/1/lyrica-3.4.0-amd64-installer.exe",
+					Name:               "lyrica-3.4.0-windows-amd64.zip",
+					BrowserDownloadURL: "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/1/lyrica-3.4.0-windows-amd64.zip",
 					Size:               1111,
 				},
 				{
-					Name:               "lyrica-3.4.0-arm64-installer.exe",
-					BrowserDownloadURL: "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/2/lyrica-3.4.0-arm64-installer.exe",
+					Name:               "lyrica-3.4.0-amd64-installer.exe",
+					BrowserDownloadURL: "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/2/lyrica-3.4.0-amd64-installer.exe",
 					Size:               2222,
 				},
 			},
@@ -272,7 +272,7 @@ func TestCheckForUpdate_SelectsFirstWindowsAsset(t *testing.T) {
 	if !info.Available {
 		t.Fatal("expected Available=true")
 	}
-	if info.DownloadURL != "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/1/lyrica-3.4.0-amd64-installer.exe" {
+	if info.DownloadURL != "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/1/lyrica-3.4.0-windows-amd64.zip" {
 		t.Errorf("expected first matching asset, got DownloadURL=%q", info.DownloadURL)
 	}
 	if info.AssetSize != 1111 {
@@ -287,8 +287,8 @@ func TestCheckForUpdate_InstallerName_BaseNameOnly(t *testing.T) {
 			Body:    "",
 			Assets: []githubinfra.ReleaseAsset{
 				{
-					Name:               "lyrica-3.4.0-amd64-installer.exe",
-					BrowserDownloadURL: "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/1/lyrica-3.4.0-amd64-installer.exe",
+					Name:               "lyrica-3.4.0-windows-amd64.zip",
+					BrowserDownloadURL: "https://objects.githubusercontent.com/repos/ak1m1tsu/lrclib/releases/assets/1/lyrica-3.4.0-windows-amd64.zip",
 					Size:               5000,
 				},
 			},
@@ -301,8 +301,8 @@ func TestCheckForUpdate_InstallerName_BaseNameOnly(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	// InstallerName should be just the file name, not a full URL path.
-	if info.InstallerName != "lyrica-3.4.0-amd64-installer.exe" {
-		t.Errorf("InstallerName: got %q, want %q", info.InstallerName, "lyrica-3.4.0-amd64-installer.exe")
+	if info.InstallerName != "lyrica-3.4.0-windows-amd64.zip" {
+		t.Errorf("InstallerName: got %q, want %q", info.InstallerName, "lyrica-3.4.0-windows-amd64.zip")
 	}
 }
 

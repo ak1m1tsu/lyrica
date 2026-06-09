@@ -27,7 +27,11 @@ export function ExportTheme(arg1:string):Promise<void>;
 
 export function GetAppIcon():Promise<string>;
 
+export function GetAutoUpdateEnabled():Promise<boolean>;
+
 export function GetByID(arg1:number):Promise<domain.Track>;
+
+export function GetCheckUpdatesEnabled():Promise<boolean>;
 
 export function GetCloseToTray():Promise<boolean>;
 
@@ -65,6 +69,10 @@ export function SaveCustomTheme(arg1:domain.Theme):Promise<void>;
 
 export function Search(arg1:string):Promise<Array<domain.Track>>;
 
+export function SetAutoUpdateEnabled(arg1:boolean):Promise<void>;
+
+export function SetCheckUpdatesEnabled(arg1:boolean):Promise<void>;
+
 export function SetCloseToTray(arg1:boolean):Promise<void>;
 
 export function SetCurrentTheme(arg1:string):Promise<void>;
@@ -74,6 +82,8 @@ export function SetDiscordPresence(arg1:boolean):Promise<void>;
 export function SetSpotifyAutoSearch(arg1:boolean):Promise<void>;
 
 export function SetSpotifyEnabled(arg1:boolean):Promise<void>;
+
+export function SkipUpdateVersion(arg1:string):Promise<void>;
 
 export function SyncFromGoogleDrive():Promise<void>;
 

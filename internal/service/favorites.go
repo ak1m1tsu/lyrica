@@ -175,3 +175,33 @@ func (s *Favorites) SaveCustomTheme(theme domain.Theme) error {
 func (s *Favorites) DeleteCustomTheme(id string) error {
 	return s.store.DeleteCustomTheme(id)
 }
+
+// AutoUpdateEnabled returns whether automatic background updates are enabled.
+func (s *Favorites) AutoUpdateEnabled() bool {
+	return s.store.AutoUpdateEnabled()
+}
+
+// SetAutoUpdateEnabled persists the auto-update preference.
+func (s *Favorites) SetAutoUpdateEnabled(ctx context.Context, enabled bool) error {
+	return s.store.SetAutoUpdateEnabled(ctx, enabled)
+}
+
+// CheckUpdatesEnabled returns whether the app should check for updates at all.
+func (s *Favorites) CheckUpdatesEnabled() bool {
+	return s.store.CheckUpdatesEnabled()
+}
+
+// SetCheckUpdatesEnabled persists the check-for-updates preference.
+func (s *Favorites) SetCheckUpdatesEnabled(ctx context.Context, enabled bool) error {
+	return s.store.SetCheckUpdatesEnabled(ctx, enabled)
+}
+
+// SkippedVersion returns the version string the user chose to skip.
+func (s *Favorites) SkippedVersion() string {
+	return s.store.SkippedVersion()
+}
+
+// SetSkippedVersion persists the version the user chose to skip.
+func (s *Favorites) SetSkippedVersion(ctx context.Context, version string) error {
+	return s.store.SetSkippedVersion(ctx, version)
+}

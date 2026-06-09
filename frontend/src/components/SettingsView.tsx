@@ -24,8 +24,12 @@ interface Props {
   downloading?: boolean
   downloadProgress?: DownloadProgress | null
   updateError?: string | null
+  autoUpdate?: boolean
+  checkUpdates?: boolean
   onCheckUpdate?: () => void
   onInstallUpdate?: () => void
+  onSetAutoUpdate?: (enabled: boolean) => void
+  onSetCheckUpdates?: (enabled: boolean) => void
   googleDrive?: ReturnType<typeof useGoogleDriveSync>
   spotifyTokenExpired?: boolean
   themeId: string
@@ -41,6 +45,7 @@ interface Props {
 export function SettingsView({
   onBack,
   hasUpdate, updateInfo, checking, downloading, downloadProgress, updateError,
+  autoUpdate, checkUpdates, onSetAutoUpdate, onSetCheckUpdates,
   onCheckUpdate, onInstallUpdate,
   googleDrive,
   spotifyTokenExpired,
@@ -316,6 +321,24 @@ export function SettingsView({
 
             {section === 'updates' && (
               <>
+                <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+                  <span className="text-sm text-[var(--color-text-80)]">Auto-update</span>
+                  {toggle(autoUpdate ?? true, () => onSetAutoUpdate?.(!(autoUpdate ?? true)))}
+                </label>
+                <p className="text-xs text-[var(--color-text-40)] -mt-2">
+                  Automatically download and apply updates on startup.
+                </p>
+
+                <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+                  <span className="text-sm text-[var(--color-text-80)]">Check for updates</span>
+                  {toggle(checkUpdates ?? true, () => onSetCheckUpdates?.(!(checkUpdates ?? true)))}
+                </label>
+                <p className="text-xs text-[var(--color-text-40)] -mt-2">
+                  Show a notification when a new version is available.
+                </p>
+
+                <hr className="border-[var(--color-border)]" />
+
                 {downloading ? (
                   <>
                     <p className="text-sm text-[var(--color-text-80)]">Downloading update…</p>

@@ -50,8 +50,16 @@ export function GetAppIcon() {
   return window['go']['main']['App']['GetAppIcon']();
 }
 
+export function GetAutoUpdateEnabled() {
+  return window['go']['main']['App']['GetAutoUpdateEnabled']();
+}
+
 export function GetByID(arg1) {
   return window['go']['main']['App']['GetByID'](arg1);
+}
+
+export function GetCheckUpdatesEnabled() {
+  return window['go']['main']['App']['GetCheckUpdatesEnabled']();
 }
 
 export function GetCloseToTray() {
@@ -126,6 +134,14 @@ export function Search(arg1) {
   return window['go']['main']['App']['Search'](arg1);
 }
 
+export function SetAutoUpdateEnabled(arg1) {
+  return window['go']['main']['App']['SetAutoUpdateEnabled'](arg1);
+}
+
+export function SetCheckUpdatesEnabled(arg1) {
+  return window['go']['main']['App']['SetCheckUpdatesEnabled'](arg1);
+}
+
 export function SetCloseToTray(arg1) {
   return window['go']['main']['App']['SetCloseToTray'](arg1);
 }
@@ -144,6 +160,10 @@ export function SetSpotifyAutoSearch(arg1) {
 
 export function SetSpotifyEnabled(arg1) {
   return window['go']['main']['App']['SetSpotifyEnabled'](arg1);
+}
+
+export function SkipUpdateVersion(arg1) {
+  return window['go']['main']['App']['SkipUpdateVersion'](arg1);
 }
 
 export function SyncFromGoogleDrive() {

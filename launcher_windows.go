@@ -2,23 +2,30 @@ package main
 
 import (
 	"fmt"
-	"syscall"
+	"os"
+	"os/exec"
 
+	"github.com/minio/selfupdate"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"golang.org/x/sys/windows"
 )
 
-func (a *App) launchInstallerAndQuit(installerPath string) error {
-	verbPtr, err := syscall.UTF16PtrFromString("runas")
+func (a *App) applyUpdateAndRelaunch(binaryPath string) error {
+	f, err := os.Open(binaryPath)
 	if err != nil {
-		return fmt.Errorf("failed to launch installer: %w", err)
+		return fmt.Errorf("self-update: open binary: %w", err)
 	}
-	pathPtr, err := syscall.UTF16PtrFromString(installerPath)
+	defer f.Close()
+
+	if err := selfupdate.Apply(f, selfupdate.Options{}); err != nil {
+		return fmt.Errorf("self-update: apply: %w", err)
+	}
+
+	exe, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to launch installer: %w", err)
+		return fmt.Errorf("self-update: resolve executable: %w", err)
 	}
-	if err := windows.ShellExecute(0, verbPtr, pathPtr, nil, nil, windows.SW_SHOWNORMAL); err != nil {
-		return fmt.Errorf("failed to launch installer: %w", err)
+	if err := exec.Command(exe).Start(); err != nil {
+		return fmt.Errorf("self-update: relaunch: %w", err)
 	}
 	runtime.Quit(a.ctx)
 	return nil

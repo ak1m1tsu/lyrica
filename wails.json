@@ -13,8 +13,11 @@
   "info": {
     "companyName": "ak1m1tsu",
     "productName": "Lyrica",
-    "productVersion": "3.8.0",
+    "productVersion": "3.9.0",
     "copyright": "Copyright © 2025 ak1m1tsu",
     "comments": "Lyrics browser powered by LRCLib.net"
+  },
+  "nsis": {
+    "installDir": "$LOCALAPPDATA\\Programs\\Lyrica"
   }
 }

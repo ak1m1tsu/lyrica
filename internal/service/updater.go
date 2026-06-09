@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -63,11 +64,12 @@ func (u *Updater) CheckForUpdate(ctx context.Context) (*UpdateInfo, error) {
 		return &UpdateInfo{Available: false}, nil
 	}
 
-	// Find the Windows NSIS installer asset.
+	// Find the platform-specific portable binary zip asset.
+	suffix := platformAssetSuffix()
 	var asset *githubinfra.ReleaseAsset
 	for i := range release.Assets {
 		a := &release.Assets[i]
-		if strings.HasSuffix(a.Name, "-amd64-installer.exe") {
+		if strings.HasSuffix(a.Name, suffix) {
 			asset = a
 			break
 		}
@@ -122,6 +124,16 @@ func newerThan(candidate, current string) bool {
 		return cv[1] > cu[1]
 	}
 	return cv[2] > cu[2]
+}
+
+// platformAssetSuffix returns the release asset filename suffix for the current OS.
+func platformAssetSuffix() string {
+	switch runtime.GOOS {
+	case "darwin":
+		return "-darwin-universal.zip"
+	default: // windows
+		return "-windows-amd64.zip"
+	}
 }
 
 func parseVersion(v string) ([3]int, error) {

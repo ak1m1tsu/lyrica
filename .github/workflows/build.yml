@@ -29,13 +29,26 @@ jobs:
       - name: Add NSIS to PATH
         run: '"C:\Program Files (x86)\NSIS" | Out-File -FilePath $env:GITHUB_PATH -Append'
 
-      - name: Build
+      - name: Build NSIS installer
         run: wails build -nsis -ldflags "-X main.googleClientID=${{ secrets.GOOGLE_CLIENT_ID }} -X main.googleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}"
+
+      - name: Build portable binary
+        run: wails build -ldflags "-X main.googleClientID=${{ secrets.GOOGLE_CLIENT_ID }} -X main.googleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}" -o build/bin/lyrica-portable.exe
+
+      - name: Get version
+        id: version
+        run: echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Zip portable binary
+        run: Compress-Archive -Path build/bin/lyrica-portable.exe -DestinationPath "build/bin/lyrica-${{ steps.version.outputs.tag }}-windows-amd64.zip"
 
       - uses: actions/upload-artifact@v7
         with:
           name: lyrica-windows
-          path: build/bin/lyrica-amd64-installer.exe
+          path: |
+            build/bin/lyrica-amd64-installer.exe
+            build/bin/lyrica-${{ steps.version.outputs.tag }}-windows-amd64.zip
 
   build-macos:
     runs-on: macos-latest
@@ -56,13 +69,17 @@ jobs:
       - name: Build (universal binary)
         run: wails build --platform darwin/universal -ldflags "-X main.googleClientID=${{ secrets.GOOGLE_CLIENT_ID }} -X main.googleClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}"
 
+      - name: Get version
+        id: version
+        run: echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
       - name: Zip app bundle
-        run: cd build/bin && zip -r lyrica-macos.zip lyrica.app
+        run: cd build/bin && zip -r "lyrica-${{ steps.version.outputs.tag }}-darwin-universal.zip" lyrica.app
 
       - uses: actions/upload-artifact@v7
         with:
           name: lyrica-macos
-          path: build/bin/lyrica-macos.zip
+          path: build/bin/lyrica-${{ steps.version.outputs.tag }}-darwin-universal.zip
 
   release:
     needs: [build-windows, build-macos]
@@ -71,6 +88,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Get version
+        id: version
+        run: echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with:
@@ -83,9 +104,10 @@ jobs:
           name: lyrica-macos
           path: artifacts
 
-      - name: Generate SHA-256 checksum
+      - name: Generate SHA-256 checksums
         run: |
           sha256sum artifacts/lyrica-amd64-installer.exe | awk '{print $1 "  lyrica-amd64-installer.exe"}' > artifacts/lyrica-amd64-installer.exe.sha256
+          sha256sum "artifacts/lyrica-${{ steps.version.outputs.tag }}-windows-amd64.zip" | awk "{print \$1 \"  lyrica-${{ steps.version.outputs.tag }}-windows-amd64.zip\"}" > "artifacts/lyrica-${{ steps.version.outputs.tag }}-windows-amd64.zip.sha256"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3

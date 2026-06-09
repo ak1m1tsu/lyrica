@@ -17,8 +17,12 @@ interface SettingsModalProps {
   downloading?: boolean
   downloadProgress?: DownloadProgress | null
   updateError?: string | null
+  autoUpdate?: boolean
+  checkUpdates?: boolean
   onCheckUpdate?: () => void
   onInstallUpdate?: () => void
+  onSetAutoUpdate?: (enabled: boolean) => void
+  onSetCheckUpdates?: (enabled: boolean) => void
   googleDrive?: ReturnType<typeof useGoogleDriveSync>
 }
 
@@ -28,7 +32,8 @@ type Tab = typeof TABS[number]
 export function SettingsModal({
   open, onClose,
   hasUpdate, updateInfo, checking, downloading, downloadProgress, updateError,
-  onCheckUpdate, onInstallUpdate,
+  autoUpdate, checkUpdates,
+  onCheckUpdate, onInstallUpdate, onSetAutoUpdate, onSetCheckUpdates,
   googleDrive,
 }: SettingsModalProps) {
   const [tab, setTab] = useState<Tab>('general')
@@ -231,6 +236,54 @@ export function SettingsModal({
 
             {tab === 'updates' && (
               <div className="flex flex-col gap-4">
+                <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+                  <span className="text-sm dark:text-white/80 text-[#0f1117]/80">Auto-update</span>
+                  <button
+                    role="switch"
+                    aria-checked={autoUpdate ?? true}
+                    onClick={() => onSetAutoUpdate?.(!(autoUpdate ?? true))}
+                    className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                      (autoUpdate ?? true)
+                        ? 'bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1]'
+                        : 'dark:bg-white/20 bg-[#0f1117]/20'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 ${
+                        (autoUpdate ?? true) ? 'translate-x-4' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </label>
+                <p className="text-xs dark:text-white/40 text-[#0f1117]/40 -mt-2">
+                  Automatically download and apply updates on startup.
+                </p>
+
+                <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+                  <span className="text-sm dark:text-white/80 text-[#0f1117]/80">Check for updates</span>
+                  <button
+                    role="switch"
+                    aria-checked={checkUpdates ?? true}
+                    onClick={() => onSetCheckUpdates?.(!(checkUpdates ?? true))}
+                    className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                      (checkUpdates ?? true)
+                        ? 'bg-gradient-to-r from-[#C8B1F3] to-[#9B84D1]'
+                        : 'dark:bg-white/20 bg-[#0f1117]/20'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 ${
+                        (checkUpdates ?? true) ? 'translate-x-4' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </label>
+                <p className="text-xs dark:text-white/40 text-[#0f1117]/40 -mt-2">
+                  Show a notification when a new version is available.
+                </p>
+
+                <hr className="dark:border-white/10 border-[#0f1117]/10" />
+
                 {downloading ? (
                   <>
                     <p className="text-sm dark:text-white/80 text-[#0f1117]/80">Downloading update…</p>

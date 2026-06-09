@@ -22,18 +22,22 @@ const (
 
 // config holds the persisted application settings.
 type config struct {
-	FavoritesDir        string `json:"favoritesDir"`
-	CloseToTray         bool   `json:"closeToTray"`
-	DiscordPresence     bool   `json:"discordPresence"`
-	SpotifyEnabled              bool   `json:"spotifyEnabled"`
-	SpotifyAutoSearchDisabled   bool   `json:"spotifyAutoSearchDisabled"`
-	SpotifyAccessToken          string `json:"spotifyAccessToken"`
-	SpotifyRefreshToken  string `json:"spotifyRefreshToken"`
-	GoogleDriveEnabled   bool   `json:"googleDriveEnabled"`
-	GoogleAccessToken    string `json:"googleAccessToken"`
-	GoogleRefreshToken   string `json:"googleRefreshToken"`
-	LastSyncAt           string `json:"lastSyncAt"`
-	CurrentTheme         string `json:"currentTheme"`
+	FavoritesDir             string `json:"favoritesDir"`
+	CloseToTray              bool   `json:"closeToTray"`
+	DiscordPresence          bool   `json:"discordPresence"`
+	SpotifyEnabled           bool   `json:"spotifyEnabled"`
+	SpotifyAutoSearchDisabled bool  `json:"spotifyAutoSearchDisabled"`
+	SpotifyAccessToken       string `json:"spotifyAccessToken"`
+	SpotifyRefreshToken      string `json:"spotifyRefreshToken"`
+	GoogleDriveEnabled       bool   `json:"googleDriveEnabled"`
+	GoogleAccessToken        string `json:"googleAccessToken"`
+	GoogleRefreshToken       string `json:"googleRefreshToken"`
+	LastSyncAt               string `json:"lastSyncAt"`
+	CurrentTheme             string `json:"currentTheme"`
+	// Inverted flags so the zero value (missing from config) means "enabled".
+	AutoUpdateDisabled    bool   `json:"autoUpdateDisabled"`
+	CheckUpdatesDisabled  bool   `json:"checkUpdatesDisabled"`
+	SkippedVersion        string `json:"skippedVersion"`
 }
 
 func defaultConfigDir() string {
@@ -572,4 +576,60 @@ func (s *SQLiteStore) DeleteCustomTheme(id string) error {
 		return nil
 	}
 	return err
+}
+
+// AutoUpdateEnabled returns whether automatic background updates are enabled.
+// Stored as an inverted flag so the zero value (absent from config) means enabled.
+func (s *SQLiteStore) AutoUpdateEnabled() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return !s.cfg.AutoUpdateDisabled
+}
+
+// SetAutoUpdateEnabled persists the auto-update preference.
+func (s *SQLiteStore) SetAutoUpdateEnabled(ctx context.Context, enabled bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.AutoUpdateDisabled = !enabled
+	return s.saveConfig()
+}
+
+// CheckUpdatesEnabled returns whether the app should check for updates at all.
+// Stored as an inverted flag so the zero value (absent from config) means enabled.
+func (s *SQLiteStore) CheckUpdatesEnabled() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return !s.cfg.CheckUpdatesDisabled
+}
+
+// SetCheckUpdatesEnabled persists the check-for-updates preference.
+func (s *SQLiteStore) SetCheckUpdatesEnabled(ctx context.Context, enabled bool) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.CheckUpdatesDisabled = !enabled
+	return s.saveConfig()
+}
+
+// SkippedVersion returns the version string the user chose to skip.
+func (s *SQLiteStore) SkippedVersion() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.cfg.SkippedVersion
+}
+
+// SetSkippedVersion persists the version the user chose to skip.
+func (s *SQLiteStore) SetSkippedVersion(ctx context.Context, version string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.SkippedVersion = version
+	return s.saveConfig()
 }

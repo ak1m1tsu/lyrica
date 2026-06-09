@@ -1,7 +1,34 @@
 package main
 
-import "errors"
+import (
+	"fmt"
+	"os"
+	"os/exec"
 
-func (a *App) launchInstallerAndQuit(_ string) error {
-	return errors.New("auto-update install not supported on this platform")
+	"github.com/minio/selfupdate"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+)
+
+func (a *App) applyUpdateAndRelaunch(binaryPath string) error {
+	f, err := os.Open(binaryPath)
+	if err != nil {
+		return fmt.Errorf("self-update: open binary: %w", err)
+	}
+	defer f.Close()
+
+	// os.Executable() inside a .app bundle resolves to Contents/MacOS/<name>,
+	// which is exactly the file selfupdate should replace.
+	if err := selfupdate.Apply(f, selfupdate.Options{}); err != nil {
+		return fmt.Errorf("self-update: apply: %w", err)
+	}
+
+	exe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("self-update: resolve executable: %w", err)
+	}
+	if err := exec.Command(exe).Start(); err != nil {
+		return fmt.Errorf("self-update: relaunch: %w", err)
+	}
+	runtime.Quit(a.ctx)
+	return nil
 }

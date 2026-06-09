@@ -27,7 +27,7 @@ func newDownloadServer(t *testing.T, handler http.HandlerFunc) *httptest.Server 
 	return srv
 }
 
-func TestDownloadInstaller_Success_SmallFile(t *testing.T) {
+func TestDownloadBinary_Success_SmallFile(t *testing.T) {
 	payload := makePayload(1024) // 1 KiB — fits in a single chunk
 
 	srv := newDownloadServer(t, func(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func TestDownloadInstaller_Success_SmallFile(t *testing.T) {
 	var progressCalls int
 	var lastReceived, lastTotal int64
 
-	path, err := DownloadInstaller(context.Background(), srv.URL, func(received, total int64) {
+	path, err := DownloadBinary(context.Background(), srv.URL, func(received, total int64) {
 		progressCalls++
 		lastReceived = received
 		lastTotal = total
@@ -52,8 +52,8 @@ func TestDownloadInstaller_Success_SmallFile(t *testing.T) {
 	if path == "" {
 		t.Fatal("expected non-empty temp file path")
 	}
-	if !strings.HasSuffix(path, ".exe") {
-		t.Errorf("temp file should end with .exe, got %q", path)
+	if !strings.HasSuffix(path, ".zip") {
+		t.Errorf("temp file should end with .zip, got %q", path)
 	}
 
 	got, err := os.ReadFile(path)
@@ -75,7 +75,7 @@ func TestDownloadInstaller_Success_SmallFile(t *testing.T) {
 	}
 }
 
-func TestDownloadInstaller_Success_MultiChunk(t *testing.T) {
+func TestDownloadBinary_Success_MultiChunk(t *testing.T) {
 	// 3 chunks worth of data plus a partial chunk.
 	payload := makePayload(downloadChunkSize*3 + 7777)
 
@@ -85,7 +85,7 @@ func TestDownloadInstaller_Success_MultiChunk(t *testing.T) {
 		w.Write(payload) //nolint:errcheck
 	})
 
-	path, err := DownloadInstaller(context.Background(), srv.URL, nil)
+	path, err := DownloadBinary(context.Background(), srv.URL, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestDownloadInstaller_Success_MultiChunk(t *testing.T) {
 	}
 }
 
-func TestDownloadInstaller_Success_NilProgress(t *testing.T) {
+func TestDownloadBinary_Success_NilProgress(t *testing.T) {
 	payload := makePayload(512)
 
 	srv := newDownloadServer(t, func(w http.ResponseWriter, r *http.Request) {
@@ -109,14 +109,14 @@ func TestDownloadInstaller_Success_NilProgress(t *testing.T) {
 	})
 
 	// nil progress must not panic
-	path, err := DownloadInstaller(context.Background(), srv.URL, nil)
+	path, err := DownloadBinary(context.Background(), srv.URL, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	t.Cleanup(func() { os.Remove(path) })
 }
 
-func TestDownloadInstaller_Success_UnknownContentLength(t *testing.T) {
+func TestDownloadBinary_Success_UnknownContentLength(t *testing.T) {
 	payload := makePayload(512)
 
 	srv := newDownloadServer(t, func(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +132,7 @@ func TestDownloadInstaller_Success_UnknownContentLength(t *testing.T) {
 	})
 
 	var observedTotal int64
-	path, err := DownloadInstaller(context.Background(), srv.URL, func(received, total int64) {
+	path, err := DownloadBinary(context.Background(), srv.URL, func(received, total int64) {
 		observedTotal = total
 	})
 	if err != nil {
@@ -146,7 +146,7 @@ func TestDownloadInstaller_Success_UnknownContentLength(t *testing.T) {
 	}
 }
 
-func TestDownloadInstaller_Non200_ReturnsError(t *testing.T) {
+func TestDownloadBinary_Non200_ReturnsError(t *testing.T) {
 	statuses := []int{
 		http.StatusNotFound,
 		http.StatusForbidden,
@@ -158,7 +158,7 @@ func TestDownloadInstaller_Non200_ReturnsError(t *testing.T) {
 				w.WriteHeader(status)
 			})
 
-			_, err := DownloadInstaller(context.Background(), srv.URL, nil)
+			_, err := DownloadBinary(context.Background(), srv.URL, nil)
 			if err == nil {
 				t.Fatalf("expected error for status %d, got nil", status)
 			}
@@ -169,7 +169,7 @@ func TestDownloadInstaller_Non200_ReturnsError(t *testing.T) {
 	}
 }
 
-func TestDownloadInstaller_ContextCancelled_RemovesPartialFile(t *testing.T) {
+func TestDownloadBinary_ContextCancelled_RemovesPartialFile(t *testing.T) {
 	// Use a large payload so the download cannot complete before cancellation.
 	payload := makePayload(downloadChunkSize * 10)
 
@@ -194,7 +194,7 @@ func TestDownloadInstaller_ContextCancelled_RemovesPartialFile(t *testing.T) {
 		cancel()
 	}()
 
-	_, err := DownloadInstaller(ctx, srv.URL, nil)
+	_, err := DownloadBinary(ctx, srv.URL, nil)
 	if err == nil {
 		t.Fatal("expected error after context cancellation, got nil")
 	}
@@ -203,20 +203,20 @@ func TestDownloadInstaller_ContextCancelled_RemovesPartialFile(t *testing.T) {
 	}
 }
 
-func TestDownloadInstaller_FileDoesNotExistAfterError(t *testing.T) {
+func TestDownloadBinary_FileDoesNotExistAfterError(t *testing.T) {
 	// A server that returns 404 should not leave a temp file behind.
 	srv := newDownloadServer(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	_, err := DownloadInstaller(context.Background(), srv.URL, nil)
+	_, err := DownloadBinary(context.Background(), srv.URL, nil)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
 	// The returned path is empty on error — no temp file to check.
 }
 
-func TestDownloadInstaller_ProgressMonotonicallyIncreasing(t *testing.T) {
+func TestDownloadBinary_ProgressMonotonicallyIncreasing(t *testing.T) {
 	payload := makePayload(downloadChunkSize * 4)
 
 	srv := newDownloadServer(t, func(w http.ResponseWriter, r *http.Request) {
@@ -226,7 +226,7 @@ func TestDownloadInstaller_ProgressMonotonicallyIncreasing(t *testing.T) {
 	})
 
 	var prev int64
-	path, err := DownloadInstaller(context.Background(), srv.URL, func(received, total int64) {
+	path, err := DownloadBinary(context.Background(), srv.URL, func(received, total int64) {
 		if received < prev {
 			t.Errorf("progress went backwards: %d → %d", prev, received)
 		}
